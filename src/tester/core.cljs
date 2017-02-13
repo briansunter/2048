@@ -12,18 +12,14 @@
 (def screen-height (.-innerHeight js/window))
 
 (def tile-width (/ (min screen-height screen-width) board-size))
-(s/def ::inside-game-board (s/int-in 1 board-size))
-
-(s/def ::x ::inside-game-board)
-
-(s/def ::y ::inside-game-board)
-
+(s/def ::within-board-size (s/int-in 0 board-size))
+(s/def ::x ::within-board-size)
+(s/def ::y ::within-board-size)
 (s/def ::value pos-int?)
 (s/def ::direction directions)
-(s/def ::position (s/tuple ::inside-game-board ::inside-game-board))
+(s/def ::position (s/tuple ::within-board-size ::within-board-size))
 (s/def ::tile (s/keys :req [::value]))
 (s/def ::game-board (s/map-of ::position ::tile :max-count (* board-size board-size) :min-count 2))
-
 (s/def ::app-db (s/keys :req [::game-board ::direction]))
 
 (defn initial-state
@@ -39,6 +35,24 @@
 (defn move-direction
   [board direction]
   (gen/generate (s/gen ::game-board)))
+
+(defn correct-number-of-positions?
+  [current-position direction-to-move]
+
+  )
+
+(s/fdef positions-to-move
+        :args (s/cat :current-position ::position
+                     :move-direction ::direction)
+        :ret (s/coll-of ::position))
+
+
+
+(defn positions-to-move
+  [[x y] move-direction]
+  (case move-direction
+    ::up (map (fn [yy] [x yy]) (reverse (range 0 y))))
+  )
 
 (defn update-state
   [state [event-type & params]]
@@ -73,6 +87,14 @@
   (let [game-board (::game-board @app-db)]
     [:div
      {:style {:display "flex"
+              :width screen-width
+              :height screen-height
+              :justify-content "center"
+              :align-items "center"}}
+    [:div
+     {:style {:display "flex"
+              :width (min screen-width screen-height)
+              :height (min screen-width screen-height)
               :padding "10%"
               :justify-content "center"
               :align-items "center"}}
@@ -82,7 +104,7 @@
        ^{:key (hash location)}
        [:div {:style {:position "absolute"
                       :background-color "orange"
-                      :border-width 4
+                      :border-width 1
                       :display "flex"
                       :font-color "black"
                       :border-style "solid"
@@ -93,17 +115,17 @@
                       :top y
                       :width tile-width
                       :height tile-width
-                      }}[:a (::value tile)]])]))
+                      }}[:a (::value tile)]])]]))
 
 (defn game []
   (reagent/create-class {:reagent-render (fn [_] [game-board])
                    :component-did-mount (fn [_] (watch-keys!))}))
 
 (defn home-page []
-  [:div [game]])
+  [:div "TEST"])
 
 (defn mount-root []
-  (reagent/render [home-page] (.getElementById js/document "app")))
+  (reagent/render [game] (.getElementById js/document "app")))
 
 (defn init! []
   (mount-root))
