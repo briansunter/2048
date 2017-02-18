@@ -22,8 +22,11 @@
 (s/def ::value (s/with-gen pos-int? (fn [] (s/gen (s/and pos-int? #(< 0 % 10))))))
 (s/def ::tile (s/keys :req [::position ::value]))
 
-(s/def ::game-board (s/coll-of ::tile :max-count (* board-size board-size) :min-count 2 :max-count 2))
-(s/def ::app-db (s/keys :req [::game-board ::direction]))
+(s/def ::game-board (s/and
+                     (s/coll-of ::tile :max-count (* board-size board-size))
+                     #(apply distinct? (map ::position %))))
+
+(s/def ::app-db (s/keys :req [::game-board]))
 
 (defn initial-state
   []
@@ -41,10 +44,10 @@
     (let [[x1 y1] (::position tile1)
           [x2 y2] (::position tile2)]
       (case direction
-        ::up (> y1 y2)
-        ::down (< y1 y2)
-        ::right (< x1 x2)
-        ::left (< x1 x2)))))
+        ::up (compare y1 y2)
+        ::down (compare y2 y1)
+        ::right (compare x1 x2)
+        ::left (compare x2 x1)))))
 
 (s/fdef sort-tiles-by-priority
         :args (s/cat :direction ::direction :tiles (s/coll-of ::tile))
@@ -52,7 +55,7 @@
 
 (defn sort-tiles-by-priority
   [direction tiles]
-  (sort-by (tile-comparator direction) tiles))
+  (sort (tile-comparator direction) tiles))
 
 (s/def ::tiles-to-move (s/map-of ::within-board-size (s/coll-of ::tile)))
 
@@ -97,7 +100,7 @@
   [event]
   (swap! app-db update-state event)
   (println @app-db)
-  (s/assert ::app-db @app-db))
+  (s/assert ::app-db @app-db)  )
 
 (def key-code->direction
   {38 ::up
