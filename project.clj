@@ -12,6 +12,7 @@
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-figwheel "0.5.4-5"]]
 
+  :repl-options {:timeout 180000}
   :min-lein-version "2.5.0"
 
   :clean-targets ^{:protect false}
