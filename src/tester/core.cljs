@@ -66,13 +66,9 @@
         :args (s/cat :direction ::direction :board ::game-board)
         :ret ::tiles-to-move)
 
-(defn- vertical?
-  [direction]
-  #{::up ::down})
+(def vertical?  #{::up ::down})
 
-(defn- horizontal?
-  [direction]
-  #{::left ::right})
+(def horizontal? #{::left ::right})
 
 (defn group-by-direction
   [direction board]
@@ -113,7 +109,7 @@
   [event]
   (swap! app-db update-state event)
   (println @app-db)
-  (s/assert ::app-db @app-db)  )
+  (s/assert ::app-db @app-db))
 
 (def key-code->direction
   {38 ::up
