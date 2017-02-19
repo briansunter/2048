@@ -7,7 +7,7 @@
 
 (def directions #{::up ::down ::right ::left})
 
-(def board-size 4)
+(def board-size 3)
 
 (def screen-width (.-innerWidth js/window))
 (def screen-height (.-innerHeight js/window))
@@ -26,7 +26,7 @@
                      (s/coll-of ::tile :max-count (* board-size board-size))
                      #(apply distinct? (map ::position %))))
 
-(def default-board-gen (gen/such-that #(< 0 (count %) board-size) (s/gen ::game-board)))
+(def default-board-gen (gen/such-that #(< board-size (count %) (* board-size board-size)) (s/gen ::game-board) 1000))
 
 (s/def ::app-db (s/keys :req [::game-board]))
 
@@ -94,15 +94,6 @@
 
 (s/fdef move-direction
         :args (s/cat :board ::game-board :direction ::direction))
-
-(defn shift-in-direction
-  [direction row]
-  (case
-      ::up (map-indexed (fn [idx itm] (update itm ::position #())))
-      ::down
-      ::left
-      ::right
-      ))
 
 (defn move-direction
   [board direction]
