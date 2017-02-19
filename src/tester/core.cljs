@@ -18,7 +18,7 @@
 (s/def ::x ::within-board-size)
 (s/def ::y ::within-board-size)
 (s/def ::direction directions)
-(s/def ::position (s/tuple ::within-board-size ::within-board-size))
+(s/def ::position (s/keys :req [::x ::y]))
 (s/def ::value (s/with-gen pos-int? (fn [] (s/gen (s/and pos-int? #(< 0 % 10))))))
 (s/def ::tile (s/keys :req [::position ::value]))
 
@@ -26,11 +26,14 @@
                      (s/coll-of ::tile :max-count (* board-size board-size))
                      #(apply distinct? (map ::position %))))
 
+(def default-board-gen (gen/such-that #(< 0 (count %) board-size) (s/gen ::game-board)))
+
 (s/def ::app-db (s/keys :req [::game-board]))
 
 (defn initial-state
   []
-  (gen/generate (s/gen ::app-db)))
+  {::game-board (gen/generate default-board-gen)})
+
 
 (defonce app-db (reagent/atom (initial-state)))
 
@@ -41,8 +44,8 @@
 (defn tile-comparator
   [direction]
   (fn [tile1 tile2]
-    (let [[x1 y1] (::position tile1)
-          [x2 y2] (::position tile2)]
+    (let [{x1 ::x y1 ::y} (::position tile1)
+          {x2 ::x y2 ::y} (::position tile2)]
       (case direction
         ::up (compare y1 y2)
         ::down (compare y2 y1)
@@ -63,11 +66,19 @@
         :args (s/cat :direction ::direction :board ::game-board)
         :ret ::tiles-to-move)
 
+(defn- vertical?
+  [direction]
+  #{::up ::down})
+
+(defn- horizontal?
+  [direction]
+  #{::left ::right})
+
 (defn group-by-direction
   [direction board]
-    (cond
-     (#{::up ::down} direction) (group-by (fn [t] (some-> t ::position first)) board)
-     (#{::right ::left} direction) (group-by (fn [t] (some-> t ::position second)) board)))
+  (cond
+    (vertical? direction) (group-by  #(-> % ::position ::x) board)
+    (horizontal? direction) (group-by #(-> % ::position ::y) board)))
 
 (s/fdef join-first
         :args (s/cat :tiles (s/and (s/coll-of ::tile) #(< 0 (count %))))
@@ -84,12 +95,23 @@
 (s/fdef move-direction
         :args (s/cat :board ::game-board :direction ::direction))
 
+(defn shift-in-direction
+  [direction row]
+  (case
+      ::up (map-indexed (fn [idx itm] (update itm ::position #())))
+      ::down
+      ::left
+      ::right
+      ))
+
 (defn move-direction
   [board direction]
   (->> (group-by-direction direction board)
        (vals)
        (map (partial sort-tiles-by-priority direction))
-       (mapcat join-first)))
+       (mapcat join-first)
+       #_(mapcat (partial shift-in-direction direction))
+       ))
 
 (defn update-state
   [state [event-type & params]]
@@ -119,7 +141,8 @@
 
 (defn position->coordinates
   [position]
-  (into [] (map #(* tile-width %)) position))
+  (-> (update position ::x #(* tile-width %))
+      (update ::y #(* tile-width %))))
 
 (defn game-board
   []
@@ -139,7 +162,7 @@
                :align-items "center"}}
       (for [tile game-board
             :let [{:keys [::position ::value]} tile
-                  [x y] (position->coordinates position)]]
+                  {x ::x y ::y} (position->coordinates position)]]
         ^{:key (hash position)}
         [:div {:style {:position "absolute"
                        :background-color "orange"
