@@ -1,4 +1,4 @@
-(ns tester.core
+(ns twentyfortyeight.core
   (:require [reagent.core :as reagent]
             [clojure.test.check.generators]
             [cljs.spec.test :as st]

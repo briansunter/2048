@@ -1,4 +1,4 @@
-(defproject tester "0.1.0-SNAPSHOT"
+(defproject twentyfortyeight "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -29,7 +29,7 @@
   :cljsbuild {:builds {:app
                        {:source-paths ["src" "env/dev/cljs"]
                         :compiler
-                        {:main "tester.dev"
+                        {:main "twentyfortyeight.dev"
                          :output-to "public/js/app.js"
                          :output-dir "public/js/out"
                          :asset-path   "js/out"

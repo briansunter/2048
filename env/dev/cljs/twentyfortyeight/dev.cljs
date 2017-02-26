@@ -1,5 +1,5 @@
-(ns ^:figwheel-no-load tester.dev
-  (:require [tester.core :as core]
+(ns ^:figwheel-no-load twentyfortyeight.dev
+  (:require [twentyfortyeight.core :as core]
             [figwheel.client :as figwheel :include-macros true]))
 
 (enable-console-print!)
