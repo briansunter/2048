@@ -3,15 +3,6 @@
             [cljs.spec.impl.gen :as gen]
             [cljs.spec.test :as st]))
 
-(defmacro if-let*
-  "Like if-let, but allow multiple bindings.  Do then only if
-   all bindings are true."
-  [bindings then]
-  (if (empty? bindings)
-    then
-    (let [[e v & r] bindings]
-      `(if-let [~e ~v]
-         (if-let* ~r ~then )))))
 
 (def directions #{::up ::down ::right ::left})
 
@@ -35,7 +26,7 @@
   (and (pos-int? n) (mod (log2 n) 1)))
 
 (s/def ::value (s/with-gen is-2048-num?
-                 #(gen/fmap pow-2 (s/gen (s/int-in 0 5)))))
+                 #(gen/fmap pow-2 (s/gen (s/int-in 1 5)))))
 
 (s/def ::tile (s/keys :req [::position ::value]))
 
@@ -99,19 +90,27 @@
     (vertical? direction) (group-by  #(-> % ::position ::x) board)
     (horizontal? direction) (group-by #(-> % ::position ::y) board)))
 
+(defn maybe-count-decreased-by-one?
+  [in-tiles out-tiles]
+  (or
+   (= (count out-tiles) (count in-tiles))
+   (= (count out-tiles) (dec (count in-tiles)))))
+
 (s/fdef join-first
         :args (s/cat :tiles (s/and (s/coll-of ::tile) not-empty))
-        :ret (s/coll-of ::tile))
+        :ret (s/coll-of ::tile)
+        :fn #(maybe-count-decreased-by-one? (-> % :args :tiles) (-> % :ret)))
 
 (defn join-first
   [tiles]
-  (let [[first-tile second-tile] tiles
-        new-value (+ (::value first-tile) (::value second-tile))
-        new-position (or (::position second-tile) (::position first-tile))
-        new-tile {::value new-value ::position new-position}]
-    (if (= (::value first-tile) (::value second-tile))
-      (cons new-tile (drop 2 tiles))
-      tiles)))
+  (if-let [match (first (filter #(<= 2 (count %))(partition-by ::value tiles)))]
+    (let [first-tile (first match)
+          second-tile (second match)
+          new-value (+ (::value first-tile) (::value second-tile))
+          new-position (or (::position second-tile) (::position first-tile))
+          new-tile {::value new-value ::position new-position}]
+      (cons new-tile (drop 2 tiles)))
+    tiles))
 
 (s/fdef stack-tiles
         :args (s/cat :direction ::direction :tiles (s/and (s/coll-of ::tile) not-empty))
