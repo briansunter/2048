@@ -9,8 +9,10 @@
 
 (def board-size 3)
 
-(def screen-width (.-innerWidth js/window))
-(def screen-height (.-innerHeight js/window))
+;; (def screen-width (.-innerWidth js/window))
+;; (def screen-height (.-innerHeight js/window))
+(def screen-width 500)
+(def screen-height 500)
 
 (def tile-width (/ (min screen-height screen-width) board-size))
 
@@ -88,17 +90,29 @@
         new-tile {::value new-value ::position new-position}]
     (cons new-tile (drop 2 tiles))))
 
+(s/fdef shift-in-direction
+        :args (s/cat :direction ::direction :tiles (s/and (s/coll-of ::tile) #(< 0 (count %))))
+        :ret (s/coll-of ::tile))
+
+(defn shift-in-direction
+  [direction tiles]
+  (case direction
+    ::up (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size i 1))) (reverse tiles))
+    ::down (map-indexed (fn [i t] (assoc-in t [::position ::y] i)) (reverse tiles))
+    ::right (map-indexed (fn [i t] (assoc-in t [::position ::x] (- board-size i 1))) (reverse tiles))
+    ::left (map-indexed (fn [i t] (assoc-in t [::position ::x] i)) (reverse tiles))))
+
 (s/fdef move-direction
-        :args (s/cat :board ::game-board :direction ::direction))
+        :args (s/cat :board ::game-board :direction ::direction)
+        :ret ::game-board)
 
 (defn move-direction
   [board direction]
   (->> (group-by-direction direction board)
        (vals)
        (map (partial sort-tiles-by-priority direction))
-       (mapcat join-first)
-       #_(mapcat (partial shift-in-direction direction))
-       ))
+       (map join-first)
+       (mapcat (partial shift-in-direction direction))))
 
 (defn update-state
   [state [event-type & params]]
