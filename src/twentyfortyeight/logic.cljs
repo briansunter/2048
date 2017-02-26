@@ -133,7 +133,7 @@
   [board]
   (let [occupied-positions (into #{} (map ::position) board)
         free-positions (filter (complement occupied-positions) all-positions)]
-    (rand-nth free-positions)))
+    (when (not-empty free-positions) (rand-nth free-positions))))
 
 (defn random-tile-value
   []
@@ -145,8 +145,10 @@
 
 (defn insert-new-random-tile
   [board]
-  (conj board {::position (random-open-position board)
-               ::value (random-tile-value)}))
+  (if-let [position (random-open-position board)]
+    (conj board {::position position
+                 ::value (random-tile-value)})
+    board))
 
 (s/fdef move-direction
         :args (s/cat :board ::game-board :direction ::direction)
