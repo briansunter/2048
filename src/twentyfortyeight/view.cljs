@@ -62,7 +62,7 @@
                        :align-items "center"
                        :font-size 20
                        :left x
-                       :bottom y
+                       :top y
                        :width tile-width
                        :height tile-width}}
          [:a (str position value)]])]]))

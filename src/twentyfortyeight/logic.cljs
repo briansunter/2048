@@ -77,8 +77,8 @@
 (defn stack-tiles
   [direction tiles]
   (case direction
-    ::up (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size i 1))) (reverse tiles))
-    ::down (map-indexed (fn [i t] (assoc-in t [::position ::y] i)) (reverse tiles))
+    ::down (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size i 1))) (reverse tiles))
+    ::up (map-indexed (fn [i t] (assoc-in t [::position ::y] i)) (reverse tiles))
     ::right (map-indexed (fn [i t] (assoc-in t [::position ::x] (- board-size i 1))) (reverse tiles))
     ::left (map-indexed (fn [i t] (assoc-in t [::position ::x] i)) (reverse tiles))))
 
