@@ -10,6 +10,7 @@
                  [reagent "0.6.0"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
+            [lein-doo "0.1.6"]
             [lein-figwheel "0.5.4-5"]]
   :repl-options {:timeout 180000}
   :min-lein-version "2.5.0"
@@ -45,7 +46,16 @@
                          :output-dir "public/js/release"
                          :asset-path   "js/out"
                          :optimizations :advanced
-                         :pretty-print false}}}}
+                         :pretty-print false}}
+                       :test
+                       {:source-paths ["src" "test"]
+                        :compiler {:main twentyfortyeight.doo-runner
+                                   :asset-path "/js/out"
+                                   :output-to "target/test.js"
+                                   :output-dir "target/cljstest/public/js/out"
+                                   :optimizations :whitespace
+                                   :pretty-print true}}}}
+  :doo {:build "test"}
 
   :aliases {"release" ["do" "clean" ["cljsbuild" "once" "release"]]}
 
