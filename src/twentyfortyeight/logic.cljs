@@ -1,5 +1,6 @@
 (ns twentyfortyeight.logic
-  (:require [cljs.spec :as s]))
+  (:require [cljs.spec :as s]
+            [cljs.spec.test :as st]))
 
 (def directions #{::up ::down ::right ::left})
 
@@ -82,6 +83,33 @@
     ::right (map-indexed (fn [i t] (assoc-in t [::position ::x] (- board-size i 1))) (reverse tiles))
     ::left (map-indexed (fn [i t] (assoc-in t [::position ::x] i)) (reverse tiles))))
 
+(def all-positions (apply concat (for [x (range board-size)]
+                           (for [y (range board-size)]
+                             {::x x ::y y}))))
+
+(s/fdef random-open-position
+        :args (s/cat :board ::game-board)
+        :ret ::position)
+
+(defn random-open-position
+  [board]
+  (let [occupied-positions (into #{} (map ::position) board)
+        free-positions (filter (complement occupied-positions) all-positions)]
+    (rand-nth free-positions)))
+
+(defn random-tile-value
+  []
+  (rand-nth '(2 4)))
+
+(s/fdef insert-new-random-tile
+        :args (s/cat :board ::game-board)
+        :ret ::game-board)
+
+(defn insert-new-random-tile
+  [board]
+  (conj board {::position (random-open-position board)
+               ::value (random-tile-value)}))
+
 (s/fdef move-direction
         :args (s/cat :board ::game-board :direction ::direction)
         :ret ::game-board)
@@ -92,9 +120,13 @@
        (vals)
        (map (partial sort-tiles-by-priority direction))
        (map join-first)
-       (mapcat (partial stack-tiles direction))))
+       (mapcat (partial stack-tiles direction))
+       (insert-new-random-tile)))
+
 
 (defn update-state
   [state [event-type & params]]
   (case event-type
     ::move-direction (let [[direction] params] (update state ::game-board #(move-direction % direction)))))
+
+(st/instrument)

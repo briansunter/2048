@@ -43,12 +43,10 @@
               :justify-content "center"
               :align-items "center"}}
      [:div
-      {:style {:display "flex"
+      {:style {
                :width (min screen-width screen-height)
                :height (min screen-width screen-height)
-               :padding "10%"
-               :justify-content "center"
-               :align-items "center"}}
+               }}
       (for [tile game-board
             :let [{:keys [::l/position ::l/value]} tile
                   {x ::l/x y ::l/y} (position->coordinates position)]]
