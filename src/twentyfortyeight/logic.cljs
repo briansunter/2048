@@ -4,7 +4,7 @@
 
 (def directions #{::up ::down ::right ::left})
 
-(def board-size 5)
+(def board-size 4)
 
 (s/def ::within-board-size (s/int-in 0 board-size))
 (s/def ::x ::within-board-size)
@@ -69,7 +69,9 @@
         new-value (+ (::value first-tile) (::value second-tile))
         new-position (or (::position second-tile) (::position first-tile))
         new-tile {::value new-value ::position new-position}]
-    (cons new-tile (drop 2 tiles))))
+    (if (= (::value first-tile) (::value second-tile))
+      (cons new-tile (drop 2 tiles))
+      tiles)))
 
 (s/fdef stack-tiles
         :args (s/cat :direction ::direction :tiles (s/and (s/coll-of ::tile) #(< 0 (count %))))
@@ -78,8 +80,8 @@
 (defn stack-tiles
   [direction tiles]
   (case direction
-    ::down (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size i 1))) (reverse tiles))
-    ::up (map-indexed (fn [i t] (assoc-in t [::position ::y] i)) (reverse tiles))
+    ::up (map-indexed (fn [i t] (assoc-in t [::position ::y] i)) tiles)
+    ::down (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size i 1))) tiles)
     ::right (map-indexed (fn [i t] (assoc-in t [::position ::x] (- board-size i 1))) (reverse tiles))
     ::left (map-indexed (fn [i t] (assoc-in t [::position ::x] i)) (reverse tiles))))
 
@@ -121,7 +123,8 @@
        (map (partial sort-tiles-by-priority direction))
        (map join-first)
        (mapcat (partial stack-tiles direction))
-       (insert-new-random-tile)))
+       (insert-new-random-tile)
+       ))
 
 
 (defn update-state

@@ -5,7 +5,7 @@
             [cljs.spec.impl.gen :as gen]
             [twentyfortyeight.logic :as l]))
 
-(def board-size 5)
+(def board-size 4)
 
 (def default-board-gen (gen/such-that #(< board-size (count %) (* board-size board-size)) (s/gen ::l/game-board) 1000))
 

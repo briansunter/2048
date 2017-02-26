@@ -6,7 +6,7 @@
 (def screen-width (.-innerWidth js/window))
 (def screen-height (.-innerHeight js/window))
 
-(def board-size 5)
+(def board-size 4)
 
 (def tile-width (/ (min screen-height screen-width) board-size))
 
@@ -64,7 +64,7 @@
                        :top y
                        :width tile-width
                        :height tile-width}}
-         [:a (str position value)]])]]))
+         [:a (str value)]])]]))
 
 (defn game []
   (r/create-class {:reagent-render (fn [_] [game-board])

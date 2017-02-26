@@ -11,4 +11,4 @@
   (is (nil? (-> spec-check first :failure)) (summarize-results' spec-check)))
 
 (deftest test-move-direction
-  (check' (st/check `l/random-open-position)))
+  (check' (st/check `l/move-direction {::st/opts {:num-tests 1000}})))
