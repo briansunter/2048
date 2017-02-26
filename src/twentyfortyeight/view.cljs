@@ -3,11 +3,9 @@
             [twentyfortyeight.logic :as l]
             [twentyfortyeight.db :as db]))
 
-;; (def screen-width (.-innerWidth js/window))
-;; (def screen-height (.-innerHeight js/window))
+(def screen-width (.-innerWidth js/window))
+(def screen-height (.-innerHeight js/window))
 
-(def screen-width 500)
-(def screen-height 500)
 (def board-size 5)
 
 (def tile-width (/ (min screen-height screen-width) board-size))
@@ -39,6 +37,9 @@
      {:style {:display "flex"
               :width screen-width
               :height screen-height
+              :position "fixed"
+              :x 0
+              :y 0
               :justify-content "center"
               :align-items "center"}}
      [:div
