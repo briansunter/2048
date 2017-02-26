@@ -51,7 +51,7 @@
   []
   (gen/fmap
    (fn [positions] (map (fn [p]{::position p ::value (gen/generate (s/gen ::value))}) positions))
-      (gen/set (gen/elements all-positions))))
+      (gen/set (gen/elements all-positions) {:min-elements 3})))
 
 (s/def ::game-board (s/with-gen
                       (s/and
@@ -121,8 +121,8 @@
   [direction tiles]
   (case direction
     ::up (map-indexed (fn [i t] (assoc-in t [::position ::y] i)) tiles)
-    ::down (map-indexed (fn [i t] (assoc-in t [::position ::y] board-size i )) tiles)
-    ::right (map-indexed (fn [i t] (assoc-in t [::position ::x] board-size )) (reverse tiles))
+    ::down (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size (inc i) ))) tiles)
+    ::right (map-indexed (fn [i t] (assoc-in t [::position ::x] (- board-size (inc i) ))) (reverse tiles))
     ::left (map-indexed (fn [i t] (assoc-in t [::position ::x] i)) (reverse tiles))))
 
 (s/fdef random-open-position
