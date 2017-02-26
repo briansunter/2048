@@ -7,15 +7,10 @@
 
 (def board-size 4)
 
-(def default-board-gen (gen/such-that #(< board-size (count %) (* board-size board-size)) (s/gen ::l/game-board) 1000))
-
-(defn initial-state
-  []
-  {::l/game-board (gen/generate default-board-gen)})
-
-(defonce app-db (r/atom (initial-state)))
 
 (s/def ::app-db (s/keys :req [::l/game-board]))
+
+(defonce app-db (r/atom (gen/generate (s/gen ::app-db))))
 
 (defn dispatch-event!
   [event]

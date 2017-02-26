@@ -1,6 +1,17 @@
 (ns twentyfortyeight.logic
   (:require [cljs.spec :as s]
+            [cljs.spec.impl.gen :as gen]
             [cljs.spec.test :as st]))
+
+(defmacro if-let*
+  "Like if-let, but allow multiple bindings.  Do then only if
+   all bindings are true."
+  [bindings then]
+  (if (empty? bindings)
+    then
+    (let [[e v & r] bindings]
+      `(if-let [~e ~v]
+         (if-let* ~r ~then )))))
 
 (def directions #{::up ::down ::right ::left})
 
@@ -11,14 +22,43 @@
 (s/def ::y ::within-board-size)
 (s/def ::direction directions)
 (s/def ::position (s/keys :req [::x ::y]))
-(s/def ::value (s/with-gen pos-int? (fn [] (s/gen (s/and pos-int? #(< 0 % 10))))))
+
+(defn log2 [n]
+  (* (.log js/Math n) (.-LOG2E js/Math)))
+
+(defn pow-2
+  [n]
+  (.pow js/Math 2 n))
+
+(defn is-2048-num?
+  [n]
+  (and (pos-int? n) (mod (log2 n) 1)))
+
+(s/def ::value (s/with-gen is-2048-num?
+                 #(gen/fmap pow-2 (s/gen (s/int-in 0 5)))))
+
 (s/def ::tile (s/keys :req [::position ::value]))
 
-(s/def ::game-board (s/and
-                     (s/coll-of ::tile :max-count (* board-size board-size))
-                     #(apply distinct? (map ::position %))))
+(def all-positions (apply concat (for [x (range (dec board-size))]
+                                   (for [y (range (dec board-size))]
+                                     {::x x ::y y}))))
 
-(s/def ::app-db (s/keys :req [::game-board]))
+(defn all-unique-positions?
+  [tiles]
+  (apply distinct? (map ::position tiles)))
+
+(defn game-board-generator
+  []
+  (gen/fmap
+   (fn [positions] (map (fn [p]{::position p ::value (gen/generate (s/gen ::value))}) positions))
+      (gen/set (gen/elements all-positions))))
+
+(s/def ::game-board (s/with-gen
+                      (s/and
+                       (s/coll-of ::tile :max-count (* board-size board-size))
+                       all-unique-positions?)
+                      game-board-generator))
+
 
 (s/fdef move-direction
         :args (s/cat :board ::game-board :direction ::direction)
@@ -60,7 +100,7 @@
     (horizontal? direction) (group-by #(-> % ::position ::y) board)))
 
 (s/fdef join-first
-        :args (s/cat :tiles (s/and (s/coll-of ::tile) #(< 0 (count %))))
+        :args (s/cat :tiles (s/and (s/coll-of ::tile) not-empty))
         :ret (s/coll-of ::tile))
 
 (defn join-first
@@ -74,20 +114,16 @@
       tiles)))
 
 (s/fdef stack-tiles
-        :args (s/cat :direction ::direction :tiles (s/and (s/coll-of ::tile) #(< 0 (count %))))
+        :args (s/cat :direction ::direction :tiles (s/and (s/coll-of ::tile) not-empty))
         :ret (s/coll-of ::tile))
 
 (defn stack-tiles
   [direction tiles]
   (case direction
     ::up (map-indexed (fn [i t] (assoc-in t [::position ::y] i)) tiles)
-    ::down (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size i 1))) tiles)
-    ::right (map-indexed (fn [i t] (assoc-in t [::position ::x] (- board-size i 1))) (reverse tiles))
+    ::down (map-indexed (fn [i t] (assoc-in t [::position ::y] board-size i )) tiles)
+    ::right (map-indexed (fn [i t] (assoc-in t [::position ::x] board-size )) (reverse tiles))
     ::left (map-indexed (fn [i t] (assoc-in t [::position ::x] i)) (reverse tiles))))
-
-(def all-positions (apply concat (for [x (range board-size)]
-                           (for [y (range board-size)]
-                             {::x x ::y y}))))
 
 (s/fdef random-open-position
         :args (s/cat :board ::game-board)
@@ -123,9 +159,7 @@
        (map (partial sort-tiles-by-priority direction))
        (map join-first)
        (mapcat (partial stack-tiles direction))
-       (insert-new-random-tile)
-       ))
-
+       (insert-new-random-tile)))
 
 (defn update-state
   [state [event-type & params]]
