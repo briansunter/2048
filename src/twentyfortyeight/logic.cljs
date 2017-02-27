@@ -93,9 +93,9 @@
   (keep-indexed #(when (pred %2) %1) coll))
 
 (s/fdef join-first
-        :args (s/cat :tiles (s/coll-of ::tile :into vector?))
-        :ret (s/coll-of ::tile)
-        :fn #(maybe-count-decreased-by-one? (-> % :args :tiles) (-> % :ret)))
+        :args (s/cat :tiles (s/coll-of ::tile :into []))
+        :ret (s/coll-of ::tile))
+        ;; :fn #(maybe-count-decreased-by-one? (-> % :args :tiles) (-> % :ret)))
 
 (defn join-first
   [tiles]
@@ -106,7 +106,7 @@
           new-value (+ (::value first-tile) (::value second-tile))
           new-position (or (::position second-tile) (::position first-tile))
           new-tile {::value new-value ::position new-position}]
-      (conj (take idx-start tiles) new-tile (drop idx-end tiles)))
+      (concat (take idx-start tiles) [new-tile] (drop idx-end tiles)))
     tiles))
 
 (defn is-stacked-from-top-to-bottom?
