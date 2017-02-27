@@ -5,8 +5,7 @@
             [cljs.spec.impl.gen :as gen]
             [twentyfortyeight.logic :as l]))
 
-(def board-size 4)
-
+(def board-size 10)
 
 (s/def ::app-db (s/keys :req [::l/game-board]))
 

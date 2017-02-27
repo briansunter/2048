@@ -6,7 +6,7 @@
 
 (def directions #{::up ::down ::right ::left})
 
-(def board-size 4)
+(def board-size 10)
 
 (s/def ::within-board-size (s/int-in 0 board-size))
 (s/def ::x ::within-board-size)
@@ -94,8 +94,8 @@
 
 (s/fdef join-first
         :args (s/cat :tiles (s/coll-of ::tile :into []))
-        :ret (s/coll-of ::tile))
-        ;; :fn #(maybe-count-decreased-by-one? (-> % :args :tiles) (-> % :ret)))
+        :ret (s/coll-of ::tile)
+        :fn #(maybe-count-decreased-by-one? (-> % :args :tiles) (-> % :ret)))
 
 (defn join-first
   [tiles]
@@ -156,11 +156,11 @@
   [board]
   (let [occupied-positions (into #{} (map ::position) board)
         free-positions (filter (complement occupied-positions) all-positions)]
-    (when (not-empty free-positions) (rand-nth free-positions))))
+    (rand-nth free-positions)))
 
 (defn random-tile-value
   []
-  (rand-nth '(2 4)))
+  (rand-nth '(2 )))
 
 (s/fdef insert-new-random-tile
         :args (s/cat :board ::game-board)
@@ -168,10 +168,8 @@
 
 (defn insert-new-random-tile
   [board]
-  (if-let [position (random-open-position board)]
-    (conj board {::position position
-                 ::value (random-tile-value)})
-    board))
+    (conj board {::position (random-open-position board)
+                 ::value (random-tile-value)}))
 
 (s/fdef move-direction
         :args (s/cat :board ::game-board :direction ::direction)

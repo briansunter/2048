@@ -6,7 +6,7 @@
 (def screen-width (.-innerWidth js/window))
 (def screen-height (.-innerHeight js/window))
 
-(def board-size 4)
+(def board-size 10)
 
 (def tile-width (* .8 (/ (min screen-height screen-width) board-size)))
 
