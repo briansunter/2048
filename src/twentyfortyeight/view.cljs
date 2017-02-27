@@ -8,7 +8,7 @@
 
 (def board-size 4)
 
-(def tile-width (/ (min screen-height screen-width) board-size))
+(def tile-width (* .8 (/ (min screen-height screen-width) board-size)))
 
 (def key-code->direction
   {38 ::l/up
@@ -43,10 +43,6 @@
               :justify-content "center"
               :align-items "center"}}
      [:div
-      {:style {
-               :width (min screen-width screen-height)
-               :height (min screen-width screen-height)
-               }}
       (for [tile game-board
             :let [{:keys [::l/position ::l/value]} tile
                   {x ::l/x y ::l/y} (position->coordinates position)]]

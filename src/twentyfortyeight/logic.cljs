@@ -41,8 +41,8 @@
 (defn game-board-generator
   []
   (gen/fmap
-   (fn [positions] (map (fn [p]{::position p ::value (gen/generate (s/gen ::value))}) positions))
-      (gen/set (gen/elements all-positions) {:min-elements 3})))
+   (fn [positions] (map (fn [p] {::position p ::value (gen/generate (s/gen ::value))}) positions))
+   (gen/set (gen/elements all-positions) {:min-elements 3})))
 
 (s/def ::game-board (s/with-gen
                       (s/and
@@ -55,24 +55,17 @@
         :args (s/cat :board ::game-board :direction ::direction)
         :ret ::game-board)
 
-(defn tile-comparator
-  [direction]
-  (fn [tile1 tile2]
-    (let [{x1 ::x y1 ::y} (::position tile1)
-          {x2 ::x y2 ::y} (::position tile2)]
-      (case direction
-        ::up (compare y1 y2)
-        ::down (compare y2 y1)
-        ::right (compare x1 x2)
-        ::left (compare x2 x1)))))
-
 (s/fdef sort-tiles-by-priority
         :args (s/cat :direction ::direction :tiles (s/coll-of ::tile))
         :ret (s/coll-of ::tile))
 
 (defn sort-tiles-by-priority
   [direction tiles]
-  (sort (tile-comparator direction) tiles))
+  (case direction
+    ::up (sort-by #(-> % ::position ::y) #(> %1 %2) tiles)
+    ::down (sort-by #(-> % ::position ::y) tiles)
+    ::left (sort-by #(-> % ::position ::x) #(> %1 %2) tiles)
+    ::right (sort-by #(-> % ::position ::x) tiles)))
 
 (s/def ::tiles-to-move (s/map-of ::within-board-size (s/coll-of ::tile)))
 
@@ -96,33 +89,64 @@
    (= (count out-tiles) (count in-tiles))
    (= (count out-tiles) (dec (count in-tiles)))))
 
+(defn indices [pred coll]
+  (keep-indexed #(when (pred %2) %1) coll))
+
 (s/fdef join-first
-        :args (s/cat :tiles (s/and (s/coll-of ::tile) not-empty))
+        :args (s/cat :tiles (s/coll-of ::tile :into vector?))
         :ret (s/coll-of ::tile)
         :fn #(maybe-count-decreased-by-one? (-> % :args :tiles) (-> % :ret)))
 
 (defn join-first
   [tiles]
-  (if-let [match (first (filter #(<= 2 (count %))(partition-by ::value tiles)))]
-    (let [first-tile (first match)
-          second-tile (second match)
+  (if-let [match  (seq (indices #(<= 2 (count %)) (partition-by ::value tiles)))]
+    (let [idx-start  (first match)
+          idx-end (+ idx-start 2)
+          [first-tile second-tile] (subvec (vec tiles) idx-start idx-end)
           new-value (+ (::value first-tile) (::value second-tile))
           new-position (or (::position second-tile) (::position first-tile))
           new-tile {::value new-value ::position new-position}]
-      (cons new-tile (drop 2 tiles)))
+      (conj (take idx-start tiles) new-tile (drop idx-end tiles)))
     tiles))
 
+(defn is-stacked-from-top-to-bottom?
+  [tiles]
+  (let [y-positions (into #{} (map #(-> % ::position ::y)) tiles )
+        expected-positions (set (range (count y-positions)))]
+    (= y-positions expected-positions)))
+
+(s/fdef stack-top-to-bottom
+        :args (s/cat :tiles (s/coll-of ::tile))
+        :ret (s/coll-of ::tile)
+        :fn #(is-stacked-from-top-to-bottom? (:ret %)))
+
+(defn stack-top-to-bottom
+  [tiles]
+  (map-indexed (fn [i t] (assoc-in t [::position ::y] i)) (reverse tiles)))
+
+(defn stack-bottom-to-top
+  [tiles]
+  (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size (inc i)))) (reverse tiles)))
+
+(defn stack-left-to-right
+  [tiles]
+  (map-indexed (fn [i t] (assoc-in t [::position ::x] i)) (reverse tiles)))
+
+(defn stack-right-to-left
+  [tiles]
+  (map-indexed (fn [i t] (assoc-in t [::position ::x] (- board-size (inc i)))) (reverse tiles)))
+
 (s/fdef stack-tiles
-        :args (s/cat :direction ::direction :tiles (s/and (s/coll-of ::tile) not-empty))
+        :args (s/cat :direction ::direction :tiles (s/and (s/coll-of ::tile)))
         :ret (s/coll-of ::tile))
 
 (defn stack-tiles
   [direction tiles]
   (case direction
-    ::up (map-indexed (fn [i t] (assoc-in t [::position ::y] i)) tiles)
-    ::down (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size (inc i) ))) tiles)
-    ::right (map-indexed (fn [i t] (assoc-in t [::position ::x] (- board-size (inc i) ))) (reverse tiles))
-    ::left (map-indexed (fn [i t] (assoc-in t [::position ::x] i)) (reverse tiles))))
+    ::up (stack-top-to-bottom tiles)
+    ::down (stack-bottom-to-top tiles)
+    ::right (stack-right-to-left tiles)
+    ::left (stack-left-to-right tiles)))
 
 (s/fdef random-open-position
         :args (s/cat :board ::game-board)
