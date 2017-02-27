@@ -6,7 +6,7 @@
 
 (def directions #{::up ::down ::right ::left})
 
-(def board-size 10)
+(def board-size 6)
 
 (s/def ::within-board-size (s/int-in 0 board-size))
 (s/def ::x ::within-board-size)
@@ -62,10 +62,10 @@
 (defn sort-tiles-by-priority
   [direction tiles]
   (case direction
-    ::up (sort-by #(-> % ::position ::y) #(> %1 %2) tiles)
-    ::down (sort-by #(-> % ::position ::y) tiles)
-    ::left (sort-by #(-> % ::position ::x) #(> %1 %2) tiles)
-    ::right (sort-by #(-> % ::position ::x) tiles)))
+    ::up (sort-by #(-> % ::position ::y)  tiles)
+    ::down (sort-by #(-> % ::position ::y) #(> %1 %2)tiles)
+    ::left (sort-by #(-> % ::position ::x)  tiles)
+    ::right (sort-by #(-> % ::position ::x) #(> %1 %2)tiles)))
 
 (s/def ::tiles-to-move (s/map-of ::within-board-size (s/coll-of ::tile)))
 
@@ -122,19 +122,19 @@
 
 (defn stack-top-to-bottom
   [tiles]
-  (map-indexed (fn [i t] (assoc-in t [::position ::y] i)) (reverse tiles)))
+  (map-indexed (fn [i t] (assoc-in t [::position ::y] i))  tiles))
 
 (defn stack-bottom-to-top
   [tiles]
-  (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size (inc i)))) (reverse tiles)))
+  (map-indexed (fn [i t] (assoc-in t [::position ::y] (- board-size (inc i))))  tiles))
 
 (defn stack-left-to-right
   [tiles]
-  (map-indexed (fn [i t] (assoc-in t [::position ::x] i)) (reverse tiles)))
+  (map-indexed (fn [i t] (assoc-in t [::position ::x] i))  tiles))
 
 (defn stack-right-to-left
   [tiles]
-  (map-indexed (fn [i t] (assoc-in t [::position ::x] (- board-size (inc i)))) (reverse tiles)))
+  (map-indexed (fn [i t] (assoc-in t [::position ::x] (- board-size (inc i))))  tiles))
 
 (s/fdef stack-tiles
         :args (s/cat :direction ::direction :tiles (s/and (s/coll-of ::tile)))

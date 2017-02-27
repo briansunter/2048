@@ -8,7 +8,7 @@
 (def screen-width (.-innerWidth js/window))
 (def screen-height (.-innerHeight js/window))
 
-(def board-size 10)
+(def board-size 6)
 
 (def tile-width (* .8 (/ (min screen-height screen-width) board-size)))
 
@@ -93,7 +93,7 @@
                      :component-did-mount (fn [this]
                                             (let [mc (new js/Hammer.Manager (r/dom-node this))]
                                               (js-invoke mc "add" (new js/Hammer.Pan #js{"direction" js/Hammer.DIRECTION_ALL}))
-                                              (js-invoke mc "on" "pan" handle-hammer-swipe)
+                                              (js-invoke mc "on" "panend" handle-hammer-swipe)
                                               (watch-keys!)
                                               (reset! !hammer-manager mc)))
 
