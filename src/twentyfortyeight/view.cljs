@@ -1,5 +1,7 @@
 (ns twentyfortyeight.view
   (:require [reagent.core :as r]
+            [clojure.walk :refer [keywordize-keys]]
+            [cljsjs.hammer]
             [twentyfortyeight.logic :as l]
             [twentyfortyeight.db :as db]))
 
@@ -30,9 +32,32 @@
   (-> (update position ::l/x #(* tile-width %))
       (update ::l/y #(* tile-width %))))
 
+(defn hammer-direction->direction
+  [hd]
+  (case hd
+    2 ::l/left
+    4 ::l/right
+    8 ::l/up
+    16 ::l/down
+    nil))
+
+(defn handle-hammer-swipe
+  [hs]
+  (if-let [direction (some-> hs
+                             js->clj
+                             keywordize-keys
+                             :direction
+                             hammer-direction->direction
+                             )]
+    (do
+      (db/dispatch-event! [::l/move-direction direction])
+      )))
+
+
 (defn game-board
   []
-  (let [game-board (::l/game-board @db/app-db)]
+  (let [game-board (::l/game-board @db/app-db)
+        ]
     [:div
      {:style {:display "flex"
               :width screen-width
@@ -63,8 +88,19 @@
          [:a (str value)]])]]))
 
 (defn game []
-  (r/create-class {:reagent-render (fn [_] [game-board])
-                   :component-did-mount (fn [_] (watch-keys!))}))
+  (let [!hammer-manager (r/atom nil)]
+    (r/create-class {:reagent-render (fn [_] [game-board])
+                     :component-did-mount (fn [this]
+                                            (let [mc (new js/Hammer.Manager (r/dom-node this))]
+                                              (js-invoke mc "add" (new js/Hammer.Pan #js{"direction" js/Hammer.DIRECTION_ALL}))
+                                              (js-invoke mc "on" "pan" handle-hammer-swipe)
+                                              (watch-keys!)
+                                              (reset! !hammer-manager mc)))
+
+                     :component-will-unmount
+                     (fn [_]
+                       (when-let [mc @!hammer-manager]
+                         (js-invoke mc "destroy")))})))
 
 (defn mount-root []
   (r/render [game] (.getElementById js/document "app")))

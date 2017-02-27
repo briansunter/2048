@@ -13,5 +13,6 @@
 
 (defn dispatch-event!
   [event]
+  (println "event recieved" event)
   (swap! app-db l/update-state event)
   (s/assert ::app-db @app-db))
