@@ -9,9 +9,7 @@
 (def screen-width (.-innerWidth js/window))
 (def screen-height (.-innerHeight js/window))
 
-(def board-size 6)
-
-(def tile-width (* .8 (/ (min screen-height screen-width) board-size)))
+(def tile-width  (/ (min screen-height screen-width) db/board-size))
 
 (def key-code->direction
   {38 :up
@@ -44,21 +42,16 @@
 
 (defn handle-hammer-swipe
   [hs]
-  (if-let [direction (some-> hs
-                             js->clj
-                             keywordize-keys
-                             :direction
-                             hammer-direction->direction
-                             )]
-    (do
-      (dispatch-event! [:move-direction direction])
-      )))
-
+  (some-> hs
+          js->clj
+          keywordize-keys
+          :direction
+          hammer-direction->direction
+          (#(dispatch-event! [:move-direction %]))))
 
 (defn game-board
   []
-  (let [game-board (:game-board @db/app-db)
-        ]
+  (let [game-board (:game-board @db/app-db)]
     [:div
      {:style {:display "flex"
               :width screen-width
