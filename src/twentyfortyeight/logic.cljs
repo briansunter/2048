@@ -4,21 +4,18 @@
             [cljs.spec.impl.gen :as gen]
             [cljs.spec.test :as st]))
 
-(s/fdef move-direction
-        :args (s/cat :board ::d/game-board :direction ::d/direction)
-        :ret ::d/game-board)
-
 (s/fdef sort-tiles-by-priority
         :args (s/cat :direction ::d/direction :tiles (s/coll-of ::d/tile))
         :ret (s/coll-of ::d/tile))
 
 (defn sort-tiles-by-priority
   [direction tiles]
-  (case direction
-    :up (sort-by #(-> % :position :y)  tiles)
-    :down (sort-by #(-> % :position :y) #(> %1 %2)tiles)
-    :left (sort-by #(-> % :position :x)  tiles)
-    :right (sort-by #(-> % :position :x) #(> %1 %2)tiles)))
+  (let [reverse #(> %1 %2)]
+   (case direction
+     :up (sort-by #(-> % :position :y)  tiles)
+     :down (sort-by #(-> % :position :y) reverse tiles)
+     :left (sort-by #(-> % :position :x)  tiles)
+     :right (sort-by #(-> % :position :x) reverse tiles))))
 
 (s/def ::tiles-to-move (s/map-of ::d/within-board-size (s/coll-of ::d/tile)))
 
@@ -33,7 +30,7 @@
 (defn group-by-direction
   [direction board]
   (cond
-    (vertical? direction) (group-by  #(-> % :position :x) board)
+    (vertical? direction) (group-by #(-> % :position :x) board)
     (horizontal? direction) (group-by #(-> % :position :y) board)))
 
 (defn maybe-count-decreased-by-one?
@@ -121,8 +118,8 @@
 
 (defn insert-new-random-tile
   [board]
-    (conj board {:position (random-open-position board)
-                 :value (random-tile-value)}))
+  (conj board {:position (random-open-position board)
+               :value (random-tile-value)}))
 
 (s/fdef move-direction
         :args (s/cat :board ::d/game-board :direction ::d/direction)
@@ -137,9 +134,5 @@
        (mapcat (partial stack-tiles direction))
        (insert-new-random-tile)))
 
-(defn update-state
-  [state [event-type & params]]
-  (case event-type
-    :move-direction (let [[direction] params] (update state :game-board #(move-direction % direction)))))
 
 (st/instrument)
