@@ -1,6 +1,7 @@
 (ns twentyfortyeight.view
   (:require [reagent.core :as r]
             [clojure.walk :refer [keywordize-keys]]
+            [twentyfortyeight.events :refer [dispatch-event!]]
             [cljsjs.hammer]
             [twentyfortyeight.logic :as l]
             [twentyfortyeight.db :as db]))
@@ -21,7 +22,7 @@
 (defn event-for-key [event]
   (let [key-code (.-keyCode event)]
     (when-let [direction (key-code->direction key-code)]
-      (db/dispatch-event! [:move-direction direction]))))
+      (dispatch-event! [:move-direction direction]))))
 
 (defn watch-keys!
   []
@@ -50,7 +51,7 @@
                              hammer-direction->direction
                              )]
     (do
-      (db/dispatch-event! [:move-direction direction])
+      (dispatch-event! [:move-direction direction])
       )))
 
 
