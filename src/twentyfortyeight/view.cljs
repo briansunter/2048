@@ -13,15 +13,15 @@
 (def tile-width (* .8 (/ (min screen-height screen-width) board-size)))
 
 (def key-code->direction
-  {38 ::l/up
-   40 ::l/down
-   37 ::l/left
-   39 ::l/right})
+  {38 :up
+   40 :down
+   37 :left
+   39 :right})
 
 (defn event-for-key [event]
   (let [key-code (.-keyCode event)]
     (when-let [direction (key-code->direction key-code)]
-      (db/dispatch-event! [::l/move-direction direction]))))
+      (db/dispatch-event! [:move-direction direction]))))
 
 (defn watch-keys!
   []
@@ -29,16 +29,16 @@
 
 (defn position->coordinates
   [position]
-  (-> (update position ::l/x #(* tile-width %))
-      (update ::l/y #(* tile-width %))))
+  (-> (update position :x #(* tile-width %))
+      (update :y #(* tile-width %))))
 
 (defn hammer-direction->direction
   [hd]
   (case hd
-    2 ::l/left
-    4 ::l/right
-    8 ::l/up
-    16 ::l/down
+    2 :left
+    4 :right
+    8 :up
+    16 :down
     nil))
 
 (defn handle-hammer-swipe
@@ -50,13 +50,13 @@
                              hammer-direction->direction
                              )]
     (do
-      (db/dispatch-event! [::l/move-direction direction])
+      (db/dispatch-event! [:move-direction direction])
       )))
 
 
 (defn game-board
   []
-  (let [game-board (::l/game-board @db/app-db)
+  (let [game-board (:game-board @db/app-db)
         ]
     [:div
      {:style {:display "flex"
@@ -69,8 +69,8 @@
               :align-items "center"}}
      [:div
       (for [tile game-board
-            :let [{:keys [::l/position ::l/value]} tile
-                  {x ::l/x y ::l/y} (position->coordinates position)]]
+            :let [{:keys [:position :value]} tile
+                  {x :x y :y} (position->coordinates position)]]
         ^{:key (hash position)}
         [:div {:style {:position "absolute"
                        :background-color "orange"
