@@ -6,10 +6,11 @@
             [cljs.spec.impl.gen :as gen]))
 
 (def board-size 6)
+
 (def directions #{:up :down :right :left})
 
-(def all-positions (apply concat (for [x (range (dec board-size))]
-                                   (for [y (range (dec board-size))]
+(def all-positions (apply concat (for [x (range board-size)]
+                                   (for [y (range board-size)]
                                      {:x x :y y}))))
 
 (def position-set-generator (gen/set (gen/elements all-positions) {:min-elements 3}))
@@ -24,9 +25,11 @@
   [tiles]
   (apply distinct? (map :position tiles)))
 
+(def max-tiles (* board-size board-size))
+
 (s/def ::game-board
   (s/with-gen
-    (s/and (s/coll-of ::tile :max-count (* board-size board-size))
+    (s/and (s/coll-of ::tile :max-count max-tiles)
            all-unique-positions?)
     game-board-generator))
 
