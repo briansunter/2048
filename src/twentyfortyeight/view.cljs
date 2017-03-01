@@ -9,7 +9,7 @@
 (def screen-width (.-innerWidth js/window))
 (def screen-height (.-innerHeight js/window))
 
-(def tile-width  (/ (min screen-height screen-width) (dec db/board-size)))
+(def tile-width  (/ (min screen-height screen-width) db/board-size))
 
 (def key-code->direction
   {38 :up
