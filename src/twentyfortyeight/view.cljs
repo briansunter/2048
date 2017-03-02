@@ -20,7 +20,7 @@
 (defn event-for-key [event]
   (let [key-code (.-keyCode event)]
     (when-let [direction (key-code->direction key-code)]
-      (dispatch-event! [:move-direction direction]))))
+      (dispatch-event! {:type :move-direction :direction direction}))))
 
 (defn watch-keys!
   []
@@ -47,7 +47,7 @@
           keywordize-keys
           :direction
           hammer-direction->direction
-          (#(dispatch-event! [:move-direction %]))))
+          (#(dispatch-event! {:type :move-direction :direction %}))))
 
 (defn game-board
   []
