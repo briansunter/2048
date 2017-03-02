@@ -18,8 +18,6 @@
      :left (sort-by #(-> % :position :x)  tiles)
      :right (sort-by #(-> % :position :x) reverse tiles))))
 
-
-
 (def vertical?  #{:up :down})
 
 (def horizontal? #{:left :right})
@@ -121,7 +119,7 @@
 
 (defn random-tile-value
   []
-  (rand-nth (concat (repeat 2 4) (repeat 8 2))))
+  (rand-nth d/tile-frequencies))
 
 (s/fdef maybe-insert-new-random-tile
         :args (s/cat :last-board ::d/game-board :new-board ::d/game-board)
