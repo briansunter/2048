@@ -121,10 +121,6 @@
   []
   (rand-nth d/tile-frequencies))
 
-(s/fdef maybe-insert-new-random-tile
-        :args (s/cat :last-board ::d/game-board :new-board ::d/game-board)
-        :ret ::d/game-board)
-
 (defn same-board?
   [b1 b2]
   (= (set b1) (set b2)))
