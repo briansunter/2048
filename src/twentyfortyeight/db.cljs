@@ -7,13 +7,15 @@
 
 (def board-size 6)
 
+(def max-tiles (* board-size board-size))
+
 (def directions #{:up :down :right :left})
 
 (def all-positions (apply concat (for [x (range board-size)]
                                    (for [y (range board-size)]
                                      {:x x :y y}))))
 
-(def position-set-generator (gen/set (gen/elements all-positions) {:min-elements 3}))
+(def position-set-generator (gen/vector (gen/elements all-positions) 2))
 
 (defn game-board-generator
   []
@@ -24,8 +26,6 @@
 (defn all-unique-positions?
   [tiles]
   (apply distinct? (map :position tiles)))
-
-(def max-tiles (* board-size board-size))
 
 (s/def ::game-board
   (s/with-gen
