@@ -33,7 +33,7 @@
            all-unique-positions?)
     game-board-generator))
 
-(def tile-frequencies  (concat (repeat 2 4) (repeat 8 2)))
+(def tile-frequencies (concat (repeat 2 4) (repeat 8 2)))
 
 (defn is-2048-num?
   [n]
@@ -41,7 +41,9 @@
 
 (defn gen-2048
   []
-  (gen/fmap pow-2 (s/gen (s/int-in 1 3))))
+  (gen/fmap
+   rand-nth
+   (gen/return tile-frequencies)))
 
 (s/def ::value (s/with-gen is-2048-num? gen-2048))
 (s/def ::tile (s/keys :req-un [::position ::value]))

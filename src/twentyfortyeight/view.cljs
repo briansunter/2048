@@ -90,7 +90,6 @@
                                               (js-invoke mc "on" "panend" handle-hammer-swipe)
                                               (watch-keys!)
                                               (reset! !hammer-manager mc)))
-
                      :component-will-unmount
                      (fn [_]
                        (when-let [mc @!hammer-manager]
