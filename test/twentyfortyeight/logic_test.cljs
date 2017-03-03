@@ -17,5 +17,5 @@
 (deftest test-all
   (check' (st/check)))
 
-(deftest test-update-state
-  (check' (st/check 'twentyfortyeight.events/update-state)))
+;; (deftest test-update-state
+;;   (check' (st/check 'twentyfortyeight.events/update-state)))

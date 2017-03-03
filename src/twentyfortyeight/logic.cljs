@@ -9,7 +9,7 @@
         :args (s/cat :direction ::d/direction :tiles (s/coll-of ::d/tile))
         :ret (s/coll-of ::d/tile))
 
-(defn sort-tiles-by-priority
+(defn- sort-tiles-by-priority
   [direction tiles]
   (let [reverse #(> %1 %2)]
    (case direction
@@ -18,15 +18,15 @@
      :left (sort-by #(-> % :position :x)  tiles)
      :right (sort-by #(-> % :position :x) reverse tiles))))
 
-(def vertical?  #{:up :down})
+(def ^:private vertical?  #{:up :down})
 
-(def horizontal? #{:left :right})
+(def ^:private horizontal? #{:left :right})
 
 (s/fdef group-by-position
         :args (s/cat :board ::d/game-board :axis #{:x :y})
         :ret (s/coll-of (s/coll-of ::d/tile)))
 
-(defn group-by-position
+(defn- group-by-position
   [board axis]
   (group-by #(-> % :position axis) board))
 
@@ -36,19 +36,19 @@
         :args (s/cat :direction ::d/direction :board ::d/game-board)
         :ret ::tiles-to-move)
 
-(defn rows-in-direction
+(defn- rows-in-direction
   [direction board]
   (cond
     (vertical? direction) (vals (group-by-position board :x))
     (horizontal? direction) (vals (group-by-position board :y))))
 
-(defn maybe-count-decreased-by-one?
+(defn- maybe-count-decreased-by-one?
   [in-tiles out-tiles]
   (or
    (= (count out-tiles) (count in-tiles))
    (= (count out-tiles) (dec (count in-tiles)))))
 
-(defn indices [pred coll]
+(defn- indices [pred coll]
   (keep-indexed #(when (pred %2) %1) coll))
 
 (s/fdef join-first
@@ -56,7 +56,7 @@
         :ret (s/coll-of ::d/tile)
         :fn #(maybe-count-decreased-by-one? (-> % :args :tiles) (-> % :ret)))
 
-(defn join-first
+(defn- join-first
   [tiles]
   (if-let [match  (seq (indices #(<= 2 (count %)) (partition-by :value tiles)))]
     (let [idx-start  (first match)
@@ -68,7 +68,7 @@
       (concat (take idx-start tiles) [new-tile] (drop idx-end tiles)))
     tiles))
 
-(defn is-stacked-from-top-to-bottom?
+(defn- is-stacked-from-top-to-bottom?
   [tiles]
   (let [y-positions (into #{} (map #(-> % :position :y)) tiles )
         expected-positions (set (range (count y-positions)))]
@@ -79,19 +79,19 @@
         :ret (s/coll-of ::d/tile))
         ;; :fn #(is-stacked-from-top-to-bottom? (:ret %)))
 
-(defn stack-top-to-bottom
+(defn- stack-top-to-bottom
   [tiles]
   (map-indexed (fn [i t] (assoc-in t [:position :y] i)) tiles))
 
-(defn stack-bottom-to-top
+(defn- stack-bottom-to-top
   [tiles]
   (map-indexed (fn [i t] (assoc-in t [:position :y] (- (dec d/board-size) i)))  tiles))
 
-(defn stack-left-to-right
+(defn- stack-left-to-right
   [tiles]
   (map-indexed (fn [i t] (assoc-in t [:position :x] i)) tiles))
 
-(defn stack-right-to-left
+(defn- stack-right-to-left
   [tiles]
   (map-indexed (fn [i t] (assoc-in t [:position :x] (- (dec d/board-size) i)))  tiles))
 
@@ -99,7 +99,7 @@
         :args (s/cat :direction ::d/direction :tiles (s/and (s/coll-of ::d/tile)))
         :ret (s/coll-of ::d/tile))
 
-(defn stack-tiles
+(defn- stack-tiles
   [direction tiles]
   (case direction
     :up (stack-top-to-bottom tiles)
@@ -111,21 +111,21 @@
         :args (s/cat :board ::d/game-board)
         :ret ::d/position)
 
-(defn random-open-position
+(defn- random-open-position
   [board]
   (let [occupied-positions (into #{} (map :position) board)
         free-positions (filter (complement occupied-positions) d/all-positions)]
     (rand-nth free-positions)))
 
-(defn random-tile-value
+(defn- random-tile-value
   []
   (rand-nth d/tile-frequencies))
 
-(defn same-board?
+(defn- same-board?
   [b1 b2]
   (= (set b1) (set b2)))
 
-(defn is-board-full?
+(defn- is-board-full?
   [board]
   (= d/max-tiles (count board)))
 
@@ -133,7 +133,7 @@
         :args (s/cat :last-board ::d/game-board :new-board ::d/game-board)
         :ret ::d/game-board)
 
-(defn maybe-insert-new-random-tile
+(defn- maybe-insert-new-random-tile
   [last-board new-board]
   (if-not (or (same-board? last-board new-board) (is-board-full? new-board))
     (conj new-board {:position (random-open-position new-board)

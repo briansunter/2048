@@ -1,7 +1,7 @@
 (ns twentyfortyeight.core
   (:require [twentyfortyeight.view :as view]
-            [twentyfortyeight.events :refer [dispatch-event! get-initial-state]]))
+            [re-frame.core :as rf]))
 
 (defn init! []
-  (dispatch-event! {:type :initialize-state :app-db (get-initial-state)})
+  (rf/dispatch-sync [:initialize])     ;; puts a value into application state
   (view/mount-root))

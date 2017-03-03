@@ -2,38 +2,34 @@
   (:require [twentyfortyeight.db :as db]
             [twentyfortyeight.logic :as l]
             [clojure.test.check.generators]
+            [re-frame.core :as rf]
             [cljs.spec.impl.gen :as gen]
             [twentyfortyeight.util :refer [set-item! get-item]]
             [cljs.spec :as s]))
 
-(def event-types #{:initialize-state :move-direction})
+(defn check-and-throw
+  "throw an exception if db doesn't match the spec"
+  [a-spec db]
+  (when-not (s/valid? a-spec db)
+    (throw (ex-info (str "spec check failed: " (s/explain-str a-spec db)) {}))))
+
+(def check-spec-interceptor (rf/after (partial check-and-throw ::db/app-db)))
 
 (s/def ::type event-types)
 
-(defmulti event-type :type)
+(defn type-of-event
+  [[et & _]]
+  et)
 
-(defmethod event-type :initialize-state [_]
-  (s/keys :req-un [::type ::db/app-db]))
+(defmulti event-type  type-of-event)
 
 (defmethod event-type :move-direction [_]
-  (s/keys :req-un [::type ::db/direction]))
+  (s/cat :event-type ::type :direction ::db/direction))
 
-(defmethod event-type :new-game [_]
-  (s/keys :req-un [::type]))
+(defmethod event-type :initialize [_]
+  (s/cat :event-type ::type))
 
 (s/def ::event (s/multi-spec event-type ::type))
-
-(s/fdef update-state
-        :args (s/cat :app-db ::db/app-db :event ::event)
-        :ret ::db/app-db)
-
-(defmulti update-state (fn [_ e] (e :type)))
-
-(defmethod update-state :initialize-state [state e]
-  (:app-db e))
-
-(defmethod update-state :move-direction [state {:keys [direction]}]
-  (update state :game-board #(l/move-direction % direction)))
 
 (s/fdef save-state-to-local-storage!
         :args (s/cat :state ::db/app-db))
@@ -58,9 +54,32 @@
   (or (get-state-from-local-storage)
       (gen-initial-state)))
 
+(def ->local-store (rf/after save-state-to-local-storage!))
+
+(def interceptors
+  [check-spec-interceptor
+   ->local-store
+   rf/trim-v])
+
+(rf/reg-event-db
+ :initialize
+ interceptors
+ (fn [_ _]
+   (get-initial-state)))
+
+(rf/reg-sub
+ :tiles
+ (fn [db _]
+   (:game-board db)))
+
+(rf/reg-event-db
+ :move-direction
+ interceptors
+ (fn [db [_ direction]]
+   (update db :game-board #(l/move-direction % direction))))
+
 (defn dispatch-event!
   [event]
   (println "event recieved" event)
-  (swap! db/app-db update-state event)
-  (save-state-to-local-storage! @db/app-db)
+  ;; (save-state-to-local-storage! @db/app-db)
   (s/assert ::db/app-db @db/app-db))

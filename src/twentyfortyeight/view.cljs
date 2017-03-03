@@ -3,6 +3,7 @@
             [clojure.walk :refer [keywordize-keys]]
             [twentyfortyeight.events :refer [dispatch-event! gen-initial-state]]
             [cljsjs.hammer]
+            [re-frame.core :as rf]
             [twentyfortyeight.logic :as l]
             [twentyfortyeight.db :as db]))
 
@@ -51,7 +52,7 @@
 
 (defn game-board
   []
-  (let [game-board (:game-board @db/app-db)]
+  (let [game-board @(rf/subscribe [:tiles])]
     [:div
      {:style {:display "flex"
               :flex-direction "column"
