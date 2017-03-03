@@ -4,7 +4,7 @@
             [clojure.test.check.generators]
             [re-frame.core :as rf]
             [cljs.spec.impl.gen :as gen]
-            [twentyfortyeight.util :refer [set-item! get-item]]
+            [twentyfortyeight.effects :as effects]
             [cljs.spec :as s]))
 
 (defn check-and-throw
@@ -31,41 +31,18 @@
 
 (s/def ::event (s/multi-spec event-type ::type))
 
-(s/fdef save-state-to-local-storage!
-        :args (s/cat :state ::db/app-db))
-
-(defn save-state-to-local-storage!
-  [app-db]
-  (set-item! ::app-db (.stringify js/JSON (clj->js app-db))))
-
-(s/fdef get-state-from-local-storage
-        :ret ::db/app-db)
-
-(defn get-state-from-local-storage
-  []
-  (s/assert ::db/app-db (js->clj (.parse js/JSON (get-item ::app-db)) :keywordize-keys true)))
-
-(defn gen-initial-state
-  []
-  (gen/generate (s/gen ::db/app-db)))
-
-(defn get-initial-state
-  []
-  (or (get-state-from-local-storage)
-      (gen-initial-state)))
-
-(def ->local-store (rf/after save-state-to-local-storage!))
+(def ->local-store (rf/after effects/save-state-to-local-storage!))
 
 (def interceptors
   [check-spec-interceptor
    ->local-store
    rf/trim-v])
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :initialize
- interceptors
- (fn [_ _]
-   (get-initial-state)))
+ [(rf/inject-cofx :gen-db) (rf/inject-cofx :local-db)]
+ (fn [cofx _]
+   {:db (or (:local-db cofx) (:gen-db cofx))}))
 
 (rf/reg-sub
  :tiles

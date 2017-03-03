@@ -1,7 +1,6 @@
 (ns twentyfortyeight.view
   (:require [reagent.core :as r]
             [clojure.walk :refer [keywordize-keys]]
-            [twentyfortyeight.events :refer [dispatch-event! gen-initial-state]]
             [cljsjs.hammer]
             [re-frame.core :as rf]
             [twentyfortyeight.logic :as l]
@@ -52,7 +51,6 @@
 
 (defn game-board
   []
-  (let [game-board @(rf/subscribe [:tiles])]
     [:div
      {:style {:display "flex"
               :flex-direction "column"
@@ -63,9 +61,8 @@
               :y 0
               :justify-content "center"
               :align-items "center"}}
-
-      [:button {:on-click #(dispatch-event! {:type :initialize-state :app-db (gen-initial-state)})} "New Game"]
-      (for [tile game-board
+      [:button {:on-click #(rf/dispatch [:initialize])} "New Game"]
+     (for [tile @(rf/subscribe [:tiles])
             :let [{:keys [:position :value]} tile
                   {x :x y :y} (position->coordinates position)]]
         ^{:key (hash position)}
@@ -82,7 +79,7 @@
                        :top y
                        :width tile-width
                        :height tile-width}}
-         [:a (str value)]])]))
+         [:a (str value)]])])
 
 (defn game []
   (let [!hammer-manager (r/atom nil)]

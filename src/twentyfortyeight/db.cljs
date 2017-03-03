@@ -54,5 +54,3 @@
 (s/def ::position (s/keys :req-un [::x ::y]))
 
 (s/def ::app-db (s/keys :req-un [::game-board]))
-
-(defonce app-db (r/atom (gen/generate (s/gen ::app-db))))
