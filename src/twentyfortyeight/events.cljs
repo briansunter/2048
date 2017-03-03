@@ -15,7 +15,7 @@
 
 (def check-spec-interceptor (rf/after (partial check-and-throw ::db/app-db)))
 
-(s/def ::type event-types)
+(s/def ::type keyword?)
 
 (defn type-of-event
   [[et & _]]
@@ -75,11 +75,5 @@
 (rf/reg-event-db
  :move-direction
  interceptors
- (fn [db [_ direction]]
+ (fn [db [direction]]
    (update db :game-board #(l/move-direction % direction))))
-
-(defn dispatch-event!
-  [event]
-  (println "event recieved" event)
-  ;; (save-state-to-local-storage! @db/app-db)
-  (s/assert ::db/app-db @db/app-db))
