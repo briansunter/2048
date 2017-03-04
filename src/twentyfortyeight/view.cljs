@@ -51,35 +51,35 @@
 
 (defn game-board
   []
-    [:div
-     {:style {:display "flex"
-              :flex-direction "column"
-              :width screen-width
-              :height screen-height
-              :position "fixed"
-              :x 0
-              :y 0
-              :justify-content "center"
-              :align-items "center"}}
-      [:button {:on-click #(rf/dispatch [:initialize])} "New Game"]
-     (for [tile @(rf/subscribe [:tiles])
-            :let [{:keys [:position :value]} tile
-                  {x :x y :y} (position->coordinates position)]]
-        ^{:key (hash position)}
-        [:div {:style {:position "absolute"
-                       :background-color "orange"
-                       :border-width 1
-                       :display "flex"
-                       :font-color "black"
-                       :border-style "solid"
-                       :justify-content"center"
-                       :align-items "center"
-                       :font-size 20
-                       :left x
-                       :top y
-                       :width tile-width
-                       :height tile-width}}
-         [:a (str value)]])])
+  [:div
+   {:style {:display "flex"
+            :flex-direction "column"
+            :width screen-width
+            :height screen-height
+            :position "fixed"
+            :x 0
+            :y 0
+            :justify-content "center"
+            :align-items "center"}}
+   [:button {:on-click #(rf/dispatch [:initialize])} "New Game"]
+   (for [tile @(rf/subscribe [:tiles])
+         :let [{:keys [:position :value]} tile
+               {x :x y :y} (position->coordinates position)]]
+     ^{:key (hash position)}
+     [:div {:style {:position "absolute"
+                    :background-color "orange"
+                    :border-width 1
+                    :display "flex"
+                    :font-color "black"
+                    :border-style "solid"
+                    :justify-content"center"
+                    :align-items "center"
+                    :font-size 20
+                    :left x
+                    :top y
+                    :width tile-width
+                    :height tile-width}}
+      [:a (str value)]])])
 
 (defn game []
   (let [!hammer-manager (r/atom nil)]

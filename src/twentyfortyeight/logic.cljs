@@ -12,11 +12,11 @@
 (defn- sort-tiles-by-priority
   [direction tiles]
   (let [reverse #(> %1 %2)]
-   (case direction
-     :up (sort-by #(-> % :position :y)  tiles)
-     :down (sort-by #(-> % :position :y) reverse tiles)
-     :left (sort-by #(-> % :position :x)  tiles)
-     :right (sort-by #(-> % :position :x) reverse tiles))))
+    (case direction
+      :up (sort-by #(-> % :position :y)  tiles)
+      :down (sort-by #(-> % :position :y) reverse tiles)
+      :left (sort-by #(-> % :position :x)  tiles)
+      :right (sort-by #(-> % :position :x) reverse tiles))))
 
 (def ^:private vertical?  #{:up :down})
 
@@ -76,8 +76,8 @@
 
 (s/fdef stack-top-to-bottom
         :args (s/cat :tiles (s/coll-of ::d/tile))
-        :ret (s/coll-of ::d/tile))
-        ;; :fn #(is-stacked-from-top-to-bottom? (:ret %)))
+        :ret (s/coll-of ::d/tile)
+        :fn #(is-stacked-from-top-to-bottom? (:ret %)))
 
 (defn- stack-top-to-bottom
   [tiles]
