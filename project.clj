@@ -8,6 +8,7 @@
                  [org.clojure/clojurescript "1.9.229" :scope "provided"]
                  [org.clojure/test.check "0.9.0"]
                  [cljsjs/hammer "2.0.4-5"]
+                 [reanimated "0.5.0"]
                  [re-frame "0.9.0"]
                  [reagent "0.6.0"]]
 
