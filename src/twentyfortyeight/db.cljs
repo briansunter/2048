@@ -53,4 +53,6 @@
 (s/def ::direction directions)
 (s/def ::position (s/keys :req-un [::x ::y]))
 
-(s/def ::app-db (s/keys :req-un [::game-board]))
+(s/def ::previous-game-boards (s/coll-of ::game-board))
+
+(s/def ::app-db (s/keys :req-un [::game-board ::previous-game-boards]))
