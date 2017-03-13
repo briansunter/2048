@@ -9,8 +9,10 @@
                  [org.clojure/test.check "0.9.0"]
                  [cljsjs/hammer "2.0.4-5"]
                  [reanimated "0.5.0"]
+                 [reagent "0.6.0" :exclusions [cljsjs/react]]
+                 [cljsjs/react-with-addons "15.2.1-0"]
                  [re-frame "0.9.0"]
-                 [reagent "0.6.0"]]
+                 [re-frisk "0.3.2"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-doo "0.1.6"]
