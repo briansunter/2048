@@ -56,9 +56,24 @@
  (fn [db _]
    (:game-board db)))
 
+(rf/reg-sub
+ :tile-with-id
+ (fn [db [_ tile-id]]
+   (first (filter #(= tile-id (:id %)) (:game-board db)))))
+
+(rf/reg-sub
+ :last-tile-with-id
+ (fn [db [_ tile-id]]
+   (first (filter #(= tile-id (:id %)) (first (:previous-game-boards db))))))
+
+(rf/reg-sub
+ :tile-at-position
+ (fn [db [_ position]]
+   (first (filter #(= position (:position %)) (:game-board db)))))
+
 (s/def ::last-position ::db/position)
 
-(s/def ::tile-diff (s/keys :req-un [::db/position ::last-position ::db/value ::db/id]))
+(s/def ::tile-diff (s/keys :req-un [::db/position ::db/value ::db/id] :opt-un [::last-position]))
 
 (s/def ::game-board-diff (s/coll-of ::tile-diff))
 
@@ -70,8 +85,10 @@
 (defn- game-board-position-diff
   [latest-game-board previous-game-board]
   (let [previous-positions (map-values :position (group-by-single :id previous-game-board))]
-    (map (fn [t] (assoc t :last-position (previous-positions (:id t))))) latest-game-board))
+    #_(println previous-positions)
+    (map (fn [t] (assoc t :last-position (previous-positions (:id t)))) latest-game-board)))
 
+(st/check `game-board-position-diff)
 
 (rf/reg-sub
  :tile-diff

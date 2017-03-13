@@ -78,9 +78,9 @@
                   :let [{:keys [:value :position :last-position :id]} tile
                         {:keys [:x :y]} (position->coordinates position)
                         {last-x :x last-y :y} (position->coordinates last-position)
-                        x-spring (anim/interpolate-to (r/atom x) {:from last-x})
-                        y-spring (anim/interpolate-to (r/atom y) {:from last-y})
-                        _ (println value last-x x last-y y)]]
+                        x-spring (anim/spring (r/atom x) {:from last-x :duration 2000})
+                        y-spring (anim/spring (r/atom y) {:from last-y :duration 2000})
+                        #_(println value last-x x last-y y)]]
               ^{:key (:id tile)}
               [:div {:style {:position "absolute"
                              :background-color "orange"
