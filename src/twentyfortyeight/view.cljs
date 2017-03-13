@@ -64,14 +64,16 @@
           (#(rf/dispatch [:move-direction %]))))
 
 (defn tile-with-id
-  [tile-position]
-  (let [tile (rf/subscribe [:tile-at-position tile-position])
-        previous-tile (rf/subscribe [:previous-tile-with-id (:id @tile)])
-        spring-x (anim/spring (ratom/reaction (axis->coordinates (get-in @tile [:position :x]))) {:from (get-in @previous-tile [:position :x])})
-        spring-y (anim/spring (ratom/reaction (axis->coordinates (get-in @tile [:position :y]))){:from (get-in @previous-tile [:position :y])})]
-    (fn []
+  [tile-id]
+  (let [tile (rf/subscribe [:tile-with-id tile-id])
+        previous-tile (rf/subscribe [:previous-tile-with-id tile-id])
+        spring-x (anim/interpolate-to (ratom/reaction (axis->coordinates (get-in @tile [:position :x]))) {:from (get-in @previous-tile [:position :x])})
+        spring-y (anim/interpolate-to (ratom/reaction (axis->coordinates (get-in @tile [:position :y]))){:from (get-in @previous-tile [:position :y])})]
+    (fn
+      []
       [:div
-       {:style {:position "absolute"
+       {:key tile-id
+        :style {:position "absolute"
                 :background-color "orange"
                 :border-width 1
                 :display "flex"
@@ -84,23 +86,24 @@
                 :top @spring-y
                 :width tile-width
                 :height tile-width}}
-       [:a (str (:value @tile))]])))
+       [:a (:value @tile)]])))
 
 (defn game-board
   []
-  (let [tile-ids @(rf/subscribe [:tile-ids])]
-    [:div
-     {:style {:display "flex"
-              :flex-direction "column"
-              :width screen-width
-              :height screen-height
-              :position "fixed"
-              :justify-content "center"
-              :align-items "center"}}
-     [:button {:on-click #(rf/dispatch [:new-game])} "New Game"]
-     (doall (for [position db/all-positions]
-              ^{:key position}
-              [tile-with-id position]))]))
+  (let [tile-ids (rf/subscribe [:tile-ids])]
+    (fn []
+      [:div
+       {:style {:display "flex"
+                :flex-direction "column"
+                :width screen-width
+                :height screen-height
+                :position "fixed"
+                :justify-content "center"
+                :align-items "center"}}
+       [:button {:on-click #(rf/dispatch [:new-game])} "New Game"]
+       (doall (for [tile-id @tile-ids]
+                ^{:key tile-id}
+                [tile-with-id tile-id]))])))
 
 (defn game []
   (let [!hammer-manager (r/atom nil)]
