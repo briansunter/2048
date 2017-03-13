@@ -3,6 +3,9 @@
             [twentyfortyeight.logic :as l]
             [clojure.test.check.generators]
             [re-frame.core :as rf]
+            [clojure.test.check]
+            [cljs.spec.test :as st]
+            [twentyfortyeight.util :refer [map-values group-by-single]]
             [cljs.spec.impl.gen :as gen]
             [twentyfortyeight.effects :as effects]
             [cljs.spec :as s]))
@@ -17,9 +20,7 @@
 
 (s/def ::type keyword?)
 
-(defn type-of-event
-  [[et & _]]
-  et)
+(def type-of-event first)
 
 (defmulti event-type  type-of-event)
 
@@ -55,12 +56,29 @@
  (fn [db _]
    (:game-board db)))
 
-#_(rf/reg-sub
-   :tile-diff
-   (fn [db _]
-     (let [latest-game-board (:game-board db)
-           last-game-board (first (:previous-game-boards db))])
-     (map vector latest-game-board last-game-board)))
+(s/def ::last-position ::db/position)
+
+(s/def ::tile-diff (s/keys :req-un [::db/position ::last-position ::db/value ::db/id]))
+
+(s/def ::game-board-diff (s/coll-of ::tile-diff))
+
+(s/fdef game-board-position-diff
+        :args (s/cat :latest-game-board  ::db/game-board
+                     :previous-game-board (s/nilable ::db/game-board))
+        :ret ::game-board-diff)
+
+(defn- game-board-position-diff
+  [latest-game-board previous-game-board]
+  (let [previous-positions (map-values :position (group-by-single :id previous-game-board))]
+    (map (fn [t] (assoc t :last-position (previous-positions (:id t))))) latest-game-board))
+
+
+(rf/reg-sub
+ :tile-diff
+ (fn [db _]
+   (let [latest-game-board (:game-board db)
+         previous-game-board (first (:previous-game-boards db))]
+     (game-board-position-diff latest-game-board previous-game-board))))
 
 (rf/reg-event-db
  :move-direction
@@ -68,3 +86,5 @@
  (fn [db [direction]]
    (-> (update db :game-board #(l/move-direction % direction))
        (update :previous-game-boards #(cons (:game-board db) %)))))
+
+(st/instrument)

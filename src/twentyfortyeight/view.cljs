@@ -5,6 +5,9 @@
             [re-frame.core :as rf]
             [reanimated.core :as anim]
             [reagent.ratom :as ratom]
+            [cljs.spec :as s]
+            [cljs.spec.test :as st]
+            [twentyfortyeight.events :as e]
             [twentyfortyeight.logic :as l]
             [twentyfortyeight.db :as db]))
 
@@ -28,10 +31,15 @@
   []
   (.addEventListener js/document "keydown" event-for-key))
 
+(s/fdef position->coordinates
+        :args (s/cat :position (s/nilable ::db/position)))
+
 (defn position->coordinates
   [position]
-  (-> (update position :x #(* tile-width %))
-      (update :y #(* tile-width %))))
+  (if position
+    (-> (update position :x #(* tile-width %))
+        (update :y #(* tile-width %)))
+    {:x 0 :y 0}))
 
 (defn hammer-direction->direction
   [hd]
@@ -51,11 +59,12 @@
           hammer-direction->direction
           (#(rf/dispatch [:move-direction %]))))
 
+(s/fdef spring-from-position-diff
+        :args (s/cat :position-diff ::e/position-diff))
+
 (defn game-board
   []
-  (let [tiles (rf/subscribe [:tiles])
-        move-tiles (doall (map #(-> (update-in % [:position :x] (comp anim/spring r/atom))
-                                    (update-in [:position :y] (comp anim/spring r/atom))) @tiles))]
+  (let [tile-diffs (rf/subscribe [:tile-diff])]
     [:div
      {:style {:display "flex"
               :flex-direction "column"
@@ -65,11 +74,13 @@
               :justify-content "center"
               :align-items "center"}}
      [:button {:on-click #(rf/dispatch [:new-game])} "New Game"]
-     (doall (for [tile move-tiles
-                  :let [{:keys [:position :value]} tile
-                        move-position {:x @(get-in tile [:position :x])
-                                       :y @(get-in tile [:position :y])}
-                        {x :x y :y} (position->coordinates move-position)]]
+     (doall (for [tile @tile-diffs
+                  :let [{:keys [:value :position :last-position :id]} tile
+                        {:keys [:x :y]} (position->coordinates position)
+                        {last-x :x last-y :y} (position->coordinates last-position)
+                        x-spring (anim/interpolate-to (r/atom x) {:from last-x})
+                        y-spring (anim/interpolate-to (r/atom y) {:from last-y})
+                        _ (println value last-x x last-y y)]]
               ^{:key (:id tile)}
               [:div {:style {:position "absolute"
                              :background-color "orange"
@@ -80,8 +91,8 @@
                              :justify-content"center"
                              :align-items "center"
                              :font-size 20
-                             :left x
-                             :top y
+                             :left @x-spring
+                             :top @y-spring
                              :width tile-width
                              :height tile-width}}
                [:a (str value)]]))]))
@@ -102,3 +113,5 @@
 
 (defn mount-root []
   (r/render [game] (.getElementById js/document "app")))
+
+(st/instrument)
