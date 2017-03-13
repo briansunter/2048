@@ -34,6 +34,10 @@
 (s/fdef position->coordinates
         :args (s/cat :position (s/nilable ::db/position)))
 
+(defn axis->coordinates
+  [a]
+  (* tile-width a))
+
 (defn position->coordinates
   [position]
   (if position
@@ -59,12 +63,32 @@
           hammer-direction->direction
           (#(rf/dispatch [:move-direction %]))))
 
-(s/fdef spring-from-position-diff
-        :args (s/cat :position-diff ::e/position-diff))
+(defn tile-with-id
+  [tile-position]
+  (let [tile (rf/subscribe [:tile-at-position tile-position])
+        previous-tile (rf/subscribe [:previous-tile-with-id (:id @tile)])
+        spring-x (anim/spring (ratom/reaction (axis->coordinates (get-in @tile [:position :x]))) {:from (get-in @previous-tile [:position :x])})
+        spring-y (anim/spring (ratom/reaction (axis->coordinates (get-in @tile [:position :y]))){:from (get-in @previous-tile [:position :y])})]
+    (fn []
+      [:div
+       {:style {:position "absolute"
+                :background-color "orange"
+                :border-width 1
+                :display "flex"
+                :font-color "black"
+                :border-style "solid"
+                :justify-content"center"
+                :align-items "center"
+                :font-size 20
+                :left @spring-x
+                :top @spring-y
+                :width tile-width
+                :height tile-width}}
+       [:a (str (:value @tile))]])))
 
 (defn game-board
   []
-  (let [tile-diffs (rf/subscribe [:tile-diff])]
+  (let [tile-ids @(rf/subscribe [:tile-ids])]
     [:div
      {:style {:display "flex"
               :flex-direction "column"
@@ -74,28 +98,9 @@
               :justify-content "center"
               :align-items "center"}}
      [:button {:on-click #(rf/dispatch [:new-game])} "New Game"]
-     (doall (for [tile @tile-diffs
-                  :let [{:keys [:value :position :last-position :id]} tile
-                        {:keys [:x :y]} (position->coordinates position)
-                        {last-x :x last-y :y} (position->coordinates last-position)
-                        x-spring (anim/spring (r/atom x) {:from last-x :duration 2000})
-                        y-spring (anim/spring (r/atom y) {:from last-y :duration 2000})
-                        #_(println value last-x x last-y y)]]
-              ^{:key (:id tile)}
-              [:div {:style {:position "absolute"
-                             :background-color "orange"
-                             :border-width 1
-                             :display "flex"
-                             :font-color "black"
-                             :border-style "solid"
-                             :justify-content"center"
-                             :align-items "center"
-                             :font-size 20
-                             :left @x-spring
-                             :top @y-spring
-                             :width tile-width
-                             :height tile-width}}
-               [:a (str value)]]))]))
+     (doall (for [position db/all-positions]
+              ^{:key position}
+              [tile-with-id position]))]))
 
 (defn game []
   (let [!hammer-manager (r/atom nil)]

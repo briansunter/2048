@@ -57,12 +57,27 @@
    (:game-board db)))
 
 (rf/reg-sub
+ :tile-ids
+ (fn [db _]
+   (map :id (:game-board db))))
+
+(rf/reg-sub
  :tile-with-id
  (fn [db [_ tile-id]]
    (first (filter #(= tile-id (:id %)) (:game-board db)))))
 
 (rf/reg-sub
- :last-tile-with-id
+ :tile-x-with-id
+ (fn [db [_ tile-id]]
+   (get-in (first (filter #(= tile-id (:id %)) (:game-board db))) [:position :x])))
+
+(rf/reg-sub
+ :tile-y-with-id
+ (fn [db [_ tile-id]]
+   (get-in (first (filter #(= tile-id (:id %)) (:game-board db))) [:position :y])))
+
+(rf/reg-sub
+ :previous-tile-with-id
  (fn [db [_ tile-id]]
    (first (filter #(= tile-id (:id %)) (first (:previous-game-boards db))))))
 
