@@ -44,13 +44,27 @@
  (fn [cofx _]
    {:db (or (:local-db cofx) (:gen-db cofx))}))
 
+(rf/reg-event-fx
+ :new-game
+ [(rf/inject-cofx :gen-db)]
+ (fn [cofx _]
+   {:db (:gen-db cofx)}))
+
 (rf/reg-sub
  :tiles
  (fn [db _]
    (:game-board db)))
 
+#_(rf/reg-sub
+   :tile-diff
+   (fn [db _]
+     (let [latest-game-board (:game-board db)
+           last-game-board (first (:previous-game-boards db))])
+     (map vector latest-game-board last-game-board)))
+
 (rf/reg-event-db
  :move-direction
  interceptors
  (fn [db [direction]]
-   (update db :game-board #(l/move-direction % direction))))
+   (-> (update db :game-board #(l/move-direction % direction))
+       (update :previous-game-boards #(cons (:game-board db) %)))))

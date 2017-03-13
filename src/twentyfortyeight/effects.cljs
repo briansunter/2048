@@ -52,3 +52,8 @@
  :local-db
  (fn [coeffects ]
    (assoc coeffects :local-db (get-state-from-local-storage))))
+
+(rf/reg-cofx
+ :uuid
+ (fn [coeffects ]
+   (assoc coeffects :uuid (str (random-uuid)))))

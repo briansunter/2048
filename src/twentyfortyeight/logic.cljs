@@ -64,7 +64,7 @@
           [first-tile second-tile] (subvec (vec tiles) idx-start idx-end)
           new-value (+ (:value first-tile) (:value second-tile))
           new-position (or (:position second-tile) (:position first-tile))
-          new-tile {:value new-value :position new-position}]
+          new-tile {:id (:id first-tile) :value new-value :position new-position}]
       (concat (take idx-start tiles) [new-tile] (drop idx-end tiles)))
     tiles))
 
@@ -136,7 +136,8 @@
 (defn- maybe-insert-new-random-tile
   [last-board new-board]
   (if-not (or (same-board? last-board new-board) (is-board-full? new-board))
-    (conj new-board {:position (random-open-position new-board)
+    (conj new-board {:id (str (random-uuid))
+                     :position (random-open-position new-board)
                      :value (random-tile-value)})
     new-board))
 

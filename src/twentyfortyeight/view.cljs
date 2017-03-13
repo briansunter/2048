@@ -3,6 +3,8 @@
             [clojure.walk :refer [keywordize-keys]]
             [cljsjs.hammer]
             [re-frame.core :as rf]
+            [reanimated.core :as anim]
+            [reagent.ratom :as ratom]
             [twentyfortyeight.logic :as l]
             [twentyfortyeight.db :as db]))
 
@@ -51,35 +53,38 @@
 
 (defn game-board
   []
-  [:div
-   {:style {:display "flex"
-            :flex-direction "column"
-            :width screen-width
-            :height screen-height
-            :position "fixed"
-            :x 0
-            :y 0
-            :justify-content "center"
-            :align-items "center"}}
-   [:button {:on-click #(rf/dispatch [:initialize])} "New Game"]
-   (for [tile @(rf/subscribe [:tiles])
-         :let [{:keys [:position :value]} tile
-               {x :x y :y} (position->coordinates position)]]
-     ^{:key (hash position)}
-     [:div {:style {:position "absolute"
-                    :background-color "orange"
-                    :border-width 1
-                    :display "flex"
-                    :font-color "black"
-                    :border-style "solid"
-                    :justify-content"center"
-                    :align-items "center"
-                    :font-size 20
-                    :left x
-                    :top y
-                    :width tile-width
-                    :height tile-width}}
-      [:a (str value)]])])
+  (let [tiles (rf/subscribe [:tiles])
+        move-tiles (doall (map #(-> (update-in % [:position :x] (comp anim/spring r/atom))
+                                    (update-in [:position :y] (comp anim/spring r/atom))) @tiles))]
+    [:div
+     {:style {:display "flex"
+              :flex-direction "column"
+              :width screen-width
+              :height screen-height
+              :position "fixed"
+              :justify-content "center"
+              :align-items "center"}}
+     [:button {:on-click #(rf/dispatch [:new-game])} "New Game"]
+     (doall (for [tile move-tiles
+                  :let [{:keys [:position :value]} tile
+                        move-position {:x @(get-in tile [:position :x])
+                                       :y @(get-in tile [:position :y])}
+                        {x :x y :y} (position->coordinates move-position)]]
+              ^{:key (:id tile)}
+              [:div {:style {:position "absolute"
+                             :background-color "orange"
+                             :border-width 1
+                             :display "flex"
+                             :font-color "black"
+                             :border-style "solid"
+                             :justify-content"center"
+                             :align-items "center"
+                             :font-size 20
+                             :left x
+                             :top y
+                             :width tile-width
+                             :height tile-width}}
+               [:a (str value)]]))]))
 
 (defn game []
   (let [!hammer-manager (r/atom nil)]

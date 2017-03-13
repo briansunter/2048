@@ -20,7 +20,7 @@
 (defn game-board-generator
   []
   (gen/fmap
-   (partial map (fn [p] {:position p :value (gen/generate (s/gen ::value))}))
+   (partial map (fn [p] {:id (gen/generate (s/gen ::id)):position p :value (gen/generate (s/gen ::value))}))
    position-set-generator))
 
 (defn all-unique-positions?
@@ -46,13 +46,15 @@
    (gen/return tile-frequencies)))
 
 (s/def ::value (s/with-gen is-2048-num? gen-2048))
-(s/def ::tile (s/keys :req-un [::position ::value]))
 (s/def ::within-board-size (s/int-in 0 board-size))
 (s/def ::x ::within-board-size)
 (s/def ::y ::within-board-size)
+(s/def ::id (s/with-gen string? #(gen/fmap str (gen/uuid))))
 (s/def ::direction directions)
 (s/def ::position (s/keys :req-un [::x ::y]))
+(s/def ::tile (s/keys :req-un [::id ::position ::value]))
 
-(s/def ::previous-game-boards (s/coll-of ::game-board))
+(s/def ::previous-game-boards (s/with-gen (s/coll-of ::game-board)
+                                #(gen/return [])))
 
 (s/def ::app-db (s/keys :req-un [::game-board ::previous-game-boards]))
