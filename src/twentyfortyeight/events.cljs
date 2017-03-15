@@ -99,11 +99,9 @@
 
 (defn- game-board-position-diff
   [latest-game-board previous-game-board]
-  (let [previous-positions (map-values :position (group-by-single :id previous-game-board))]
+  (let [previous-positions (map-values :value (group-by-single :id previous-game-board))]
     #_(println previous-positions)
     (map (fn [t] (assoc t :last-position (previous-positions (:id t)))) latest-game-board)))
-
-(st/check `game-board-position-diff)
 
 (rf/reg-sub
  :tile-diff
@@ -118,5 +116,3 @@
  (fn [db [direction]]
    (-> (update db :game-board #(l/move-direction % direction))
        (update :previous-game-boards #(cons (:game-board db) %)))))
-
-(st/instrument)

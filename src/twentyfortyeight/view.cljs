@@ -67,8 +67,8 @@
   [tile-id]
   (let [tile (rf/subscribe [:tile-with-id tile-id])
         previous-tile (rf/subscribe [:previous-tile-with-id tile-id])
-        spring-x (anim/interpolate-to (ratom/reaction (axis->coordinates (get-in @tile [:position :x]))) {:from (get-in @previous-tile [:position :x])})
-        spring-y (anim/interpolate-to (ratom/reaction (axis->coordinates (get-in @tile [:position :y]))){:from (get-in @previous-tile [:position :y])})]
+        spring-x (anim/interpolate-to (ratom/reaction (axis->coordinates (get-in @tile [:position :x]))) {:duration 250})
+        spring-y (anim/interpolate-to (ratom/reaction (axis->coordinates (get-in @tile [:position :y]))) {:duration 250})]
     (fn
       []
       [:div
@@ -121,5 +121,3 @@
 
 (defn mount-root []
   (r/render [game] (.getElementById js/document "app")))
-
-(st/instrument)

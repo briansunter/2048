@@ -5,7 +5,7 @@
             [clojure.test.check.generators]
             [cljs.spec.impl.gen :as gen]))
 
-(def board-size 6)
+(def board-size 5)
 
 (def max-tiles (* board-size board-size))
 

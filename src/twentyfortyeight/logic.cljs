@@ -152,5 +152,3 @@
        (map join-first)
        (mapcat (partial stack-tiles direction))
        (maybe-insert-new-random-tile board)))
-
-(st/instrument)
