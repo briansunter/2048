@@ -3,7 +3,7 @@
             [twentyfortyeight.logic ]
             [twentyfortyeight.events]
             [twentyfortyeight.effects]
-            [twentyfortyeight.view]
+            [twentyfortyeight.view.view]
             [twentyfortyeight.test-util :refer [check']]
             [cljs.spec.test :as st]))
 

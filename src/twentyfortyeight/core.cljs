@@ -1,5 +1,5 @@
 (ns twentyfortyeight.core
-  (:require [twentyfortyeight.view :as view]
+  (:require [twentyfortyeight.view.view :as view]
             [twentyfortyeight.db]
             [twentyfortyeight.effects]
             [twentyfortyeight.events]

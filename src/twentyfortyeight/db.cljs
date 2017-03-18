@@ -45,16 +45,18 @@
    rand-nth
    (gen/return tile-frequencies)))
 
+(def id-gen #(gen/fmap str (gen/uuid)))
+
+(def previous-game-board-gen #(gen/return []))
+
 (s/def ::value (s/with-gen is-2048-num? gen-2048))
 (s/def ::within-board-size (s/int-in 0 board-size))
 (s/def ::x ::within-board-size)
 (s/def ::y ::within-board-size)
-(s/def ::id (s/with-gen string? #(gen/fmap str (gen/uuid))))
+(s/def ::id (s/with-gen string? id-gen))
 (s/def ::direction directions)
 (s/def ::position (s/keys :req-un [::x ::y]))
 (s/def ::tile (s/keys :req-un [::id ::position ::value]))
-
 (s/def ::previous-game-boards (s/with-gen (s/coll-of ::game-board)
-                                #(gen/return [])))
-
+                                previous-game-board-gen))
 (s/def ::app-db (s/keys :req-un [::game-board ::previous-game-boards]))
