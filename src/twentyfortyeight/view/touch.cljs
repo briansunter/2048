@@ -4,6 +4,15 @@
             [re-frame.core :as rf]
             [reagent.core :as r]))
 
+(defn handle-hammer-swipe
+  [hs]
+  (some-> hs
+          js->clj
+          keywordize-keys
+          :direction
+          hammer-direction->direction
+          (#(rf/dispatch [:move-direction %]))))
+
 (defn hammer-manager [component]
   (let [mc (new js/Hammer.Manager (r/dom-node component))]
    (js-invoke mc "add" (new js/Hammer.Pan #js{"direction" js/Hammer.DIRECTION_ALL}))
@@ -22,12 +31,3 @@
     8 :up
     16 :down
     nil))
-
-(defn handle-hammer-swipe
-  [hs]
-  (some-> hs
-          js->clj
-          keywordize-keys
-          :direction
-          hammer-direction->direction
-          (#(rf/dispatch [:move-direction %]))))

@@ -16,7 +16,7 @@
 (def screen-width (.-innerWidth js/window))
 (def screen-height (.-innerHeight js/window))
 
-(def tile-width  (/ (min screen-height screen-width) db/board-size))
+(def tile-width (/ (min screen-height screen-width) db/board-size))
 
 (s/fdef position->coordinates
         :args (s/cat :position (s/nilable ::db/position)))
@@ -32,17 +32,41 @@
         (update :y #(* tile-width %)))
     {:x 0 :y 0}))
 
+(defn spring-from-tile
+  [tile axis]
+  (-> (get-in @tile [:position axis])
+      (axis->coordinates)
+      (ratom/reaction)
+      (anim/interpolate-to {:duration 250})))
+
+(defn int->hex
+  [i]
+  (.toString i 16))
+
+(s/fdef pad-right-with
+         :args (s/cat :s string? :num-digits pos-int? :pad char?)
+         :ret string?)
+
+(defn pad-right-with
+  [s num-digits pad]
+  (let [amount-to-pad (- num-digits (.-length s))
+        padding (repeat amount-to-pad pad)]
+    (clojure.string/join (concat s padding))))
+
+(defn value->color
+  [value]
+  (str "#" (pad-right-with (int->hex (* 10001 value)) 6 \0)))
+
 (defn tile-with-id
   [tile-id]
   (let [tile (rf/subscribe [:tile-with-id tile-id])
-        previous-tile (rf/subscribe [:previous-tile-with-id tile-id])
-        spring-x (anim/interpolate-to (ratom/reaction (axis->coordinates (get-in @tile [:position :x]))) {:duration 250})
-        spring-y (anim/interpolate-to (ratom/reaction (axis->coordinates (get-in @tile [:position :y]))) {:duration 250})]
+        spring-x (spring-from-tile tile :x)
+        spring-y (spring-from-tile tile :y)]
     (fn []
       [:div
        {:key tile-id
         :style {:position "absolute"
-                :background-color "orange"
+                :background-color (value->color (:value @tile))
                 :border-width 1
                 :display "flex"
                 :font-color "black"
@@ -62,12 +86,9 @@
     (fn []
       [:div
        {:style {:display "flex"
-                :flex-direction "column"
                 :width screen-width
                 :height screen-height
-                :position "fixed"
-                :justify-content "center"
-                :align-items "center"}}
+                :position "fixed"}}
        [:button {:on-click #(rf/dispatch [:new-game])} "New Game"]
        (doall (for [tile-id @tile-ids]
                 ^{:key tile-id}

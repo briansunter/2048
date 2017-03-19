@@ -64,7 +64,7 @@
           [first-tile second-tile] (subvec (vec tiles) idx-start idx-end)
           new-value (+ (:value first-tile) (:value second-tile))
           new-position (or (:position second-tile) (:position first-tile))
-          new-tile {:id (:id first-tile) :value new-value :position new-position}]
+          new-tile {:id (:id second-tile) :value new-value :position new-position}]
       (concat (take idx-start tiles) [new-tile] (drop idx-end tiles)))
     tiles))
 

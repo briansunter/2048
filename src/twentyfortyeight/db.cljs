@@ -20,7 +20,7 @@
 (defn game-board-generator
   []
   (gen/fmap
-   (partial map (fn [p] {:id (gen/generate (s/gen ::id)):position p :value (gen/generate (s/gen ::value))}))
+   (partial map (fn [p] {:id (gen/generate (s/gen ::id)) :position p :value (gen/generate (s/gen ::value))}))
    position-set-generator))
 
 (defn all-unique-positions?

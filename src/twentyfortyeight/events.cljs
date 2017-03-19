@@ -100,7 +100,6 @@
 (defn- game-board-position-diff
   [latest-game-board previous-game-board]
   (let [previous-positions (map-values :value (group-by-single :id previous-game-board))]
-    #_(println previous-positions)
     (map (fn [t] (assoc t :last-position (previous-positions (:id t)))) latest-game-board)))
 
 (rf/reg-sub
