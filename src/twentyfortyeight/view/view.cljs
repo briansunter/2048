@@ -53,6 +53,10 @@
         padding (repeat amount-to-pad pad)]
     (clojure.string/join (concat s padding))))
 
+(s/def ::hex-length #(= 6 (.-length %)))
+
+(s/def ::hex-color (s/and string? ::hex-length))
+
 (defn value->color
   [value]
   (str "#" (pad-right-with (int->hex (* 10001 value)) 6 \0)))
