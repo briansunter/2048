@@ -86,32 +86,30 @@
  (fn [db [_ position]]
    (first (filter #(= position (:position %)) (:game-board db)))))
 
-(s/def ::last-position ::db/position)
-
-(s/def ::tile-diff (s/keys :req-un [::db/position ::db/value ::db/id] :opt-un [::last-position]))
-
-(s/def ::game-board-diff (s/coll-of ::tile-diff))
-
-(s/fdef game-board-position-diff
-        :args (s/cat :latest-game-board  ::db/game-board
-                     :previous-game-board (s/nilable ::db/game-board))
-        :ret ::game-board-diff)
-
-(defn- game-board-position-diff
-  [latest-game-board previous-game-board]
-  (let [previous-positions (map-values :value (group-by-single :id previous-game-board))]
-    (map (fn [t] (assoc t :last-position (previous-positions (:id t)))) latest-game-board)))
-
-(rf/reg-sub
- :tile-diff
- (fn [db _]
-   (let [latest-game-board (:game-board db)
-         previous-game-board (first (:previous-game-boards db))]
-     (game-board-position-diff latest-game-board previous-game-board))))
-
 (rf/reg-event-db
  :move-direction
  interceptors
  (fn [db [direction]]
    (-> (update db :game-board #(l/move-direction % direction))
        (update :previous-game-boards #(cons (:game-board db) %)))))
+
+(defn tile-with-id
+  [tile-id game-board]
+  (first (filter #(= tile-id (:id %)) game-board)))
+
+(s/fdef tile-is-new?
+        :args (s/cat :tile-id ::db/id
+                     :game-board ::db/game-board
+                     :previous-game-board ::db/game-board)
+        :ret (s/nilable boolean?))
+
+(defn tile-is-new?
+  [tile-id game-board previous-game-board]
+  (let [in-current-board? (tile-with-id tile-id game-board)
+        in-previous-board? (tile-with-id tile-id previous-game-board)]
+    (and in-previous-board? (not in-current-board?))))
+
+(rf/reg-sub
+ :tile-is-new?
+ (fn [db [_ tile-id]]
+   (tile-is-new? tile-id (:game-board db) (first (:previous-game-boards db)))))

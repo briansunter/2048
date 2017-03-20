@@ -8,4 +8,5 @@
 
 (defn init! []
   (rf/dispatch-sync [:initialize])
+  (enable-re-frisk!)
   (view/mount-root))

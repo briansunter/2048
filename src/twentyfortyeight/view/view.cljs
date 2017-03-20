@@ -32,7 +32,7 @@
         (update :y #(* tile-width %)))
     {:x 0 :y 0}))
 
-(defn spring-from-tile
+(defn movement-spring-from-tile
   [tile axis]
   (-> (get-in @tile [:position axis])
       (axis->coordinates)
@@ -59,30 +59,38 @@
 
 (defn value->color
   [value]
-  (str "#" (pad-right-with (int->hex (* 10001 value)) 6 \0)))
+  (str "#" (pad-right-with (int->hex (* 10000 (+ 100 value))) 6 \0)))
 
 (defn tile-with-id
   [tile-id]
   (let [tile (rf/subscribe [:tile-with-id tile-id])
-        spring-x (spring-from-tile tile :x)
-        spring-y (spring-from-tile tile :y)]
+        tile-is-new? (rf/subscribe [:tile-is-new? tile-id])
+        spring-x (movement-spring-from-tile tile :x)
+        spring-y (movement-spring-from-tile tile :y)
+        grow-spring (anim/spring (r/atom tile-width) {:from 0})]
     (fn []
       [:div
        {:key tile-id
         :style {:position "absolute"
-                :background-color (value->color (:value @tile))
-                :border-width 1
                 :display "flex"
                 :font-color "black"
-                :border-style "solid"
                 :justify-content"center"
                 :align-items "center"
-                :font-size 20
+                :font-size 30
                 :left @spring-x
                 :top @spring-y
                 :width tile-width
                 :height tile-width}}
-       [:a (:value @tile)]])))
+       [:div
+        {:style {:background-color (value->color (:value @tile))
+                 :border-width 1
+                 :border-style "solid"
+                 :display "flex"
+                 :justify-content"center"
+                 :align-items "center"
+                 :width @grow-spring
+                 :height @grow-spring}}
+        [:a (:value @tile)]]])))
 
 (defn game-board
   []
