@@ -8,6 +8,10 @@
  (fn [db _]
    (map :id (:game-board db))))
 
+(s/fdef find-first-by-id
+        :args (s/cat :board ::db/game-board :id ::db/id)
+        :ret ::db/tile)
+
 (rf/reg-sub
  :tile-with-id
  (fn [db [_ tile-id]]

@@ -26,6 +26,9 @@
 (defmethod event-type :initialize [_]
   (s/cat :event-type ::type))
 
+(defmethod event-type :new-game [_]
+  (s/cat :event-type ::type))
+
 (s/def ::event (s/multi-spec event-type ::type))
 
 (def ->local-store (rf/after effects/save-state-to-local-storage!))
@@ -47,9 +50,17 @@
  (fn [cofx _]
    {:db (:gen-db cofx)}))
 
+(s/fdef update-db-with-direction
+        :args (s/cat :app-db ::db/app-db :direction ::db/direction)
+        :ret ::db/app-db)
+
+(defn update-db-with-direction
+  [db direction]
+  (-> (update db :game-board #(l/move-direction % direction))
+      (update :previous-game-boards #(cons (:game-board db) %))))
+
 (rf/reg-event-db
  :move-direction
  interceptors
  (fn [db [direction]]
-   (-> (update db :game-board #(l/move-direction % direction))
-       (update :previous-game-boards #(cons (:game-board db) %)))))
+   (update-db-with-direction db direction)))
