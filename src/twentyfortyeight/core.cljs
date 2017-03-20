@@ -3,6 +3,7 @@
             [twentyfortyeight.db]
             [twentyfortyeight.effects]
             [twentyfortyeight.events]
+            [twentyfortyeight.subs]
             [re-frisk.core :refer [enable-re-frisk!]]
             [re-frame.core :as rf]))
 

@@ -64,6 +64,7 @@
 (defn tile-with-id
   [tile-id]
   (let [tile (rf/subscribe [:tile-with-id tile-id])
+        previous-tile (rf/subscribe [:previous-tile-with-id tile-id])
         tile-is-new? (rf/subscribe [:tile-is-new? tile-id])
         spring-x (movement-spring-from-tile tile :x)
         spring-y (movement-spring-from-tile tile :y)
