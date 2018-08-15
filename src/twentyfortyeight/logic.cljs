@@ -51,26 +51,31 @@
 (defn- indices [pred coll]
   (keep-indexed #(when (pred %2) %1) coll))
 
+(defn- join-tiles
+  [first-tile second-tile]
+  (let [new-id (or  #_(:id second-tile) (:id first-tile))
+        new-value (+ (:value first-tile) (:value second-tile))
+        new-position (or #_(:position second-tile) (:position first-tile))]
+  {:id  new-id :value new-value :position new-position}))
+
+(defn- join-group
+  [group]
+  (map (fn [[f s]] (join-tiles f s)) (partition-all 2 group)))
+
 (s/fdef join-first
-        :args (s/cat :tiles (s/coll-of ::d/tile :into []))
-        :ret (s/coll-of ::d/tile)
-        :fn #(maybe-count-decreased-by-one? (-> % :args :tiles) (-> % :ret)))
+  :args (s/cat :tiles (s/coll-of ::d/tile :into []))
+  :ret (s/coll-of ::d/tile)
+  :fn #(maybe-count-decreased-by-one? (-> % :args :tiles) (-> % :ret)))
 
 (defn- join-first
   [tiles]
-  (if-let [match  (seq (indices #(<= 2 (count %)) (partition-by :value tiles)))]
-    (let [idx-start  (first match)
-          idx-end (+ idx-start 2)
-          [first-tile second-tile] (subvec (vec tiles) idx-start idx-end)
-          new-value (+ (:value first-tile) (:value second-tile))
-          new-position (or (:position second-tile) (:position first-tile))
-          new-tile {:id (:id second-tile) :value new-value :position new-position}]
-      (concat (take idx-start tiles) [new-tile] (drop idx-end tiles)))
-    tiles))
+  (reduce (fn [acc group] (if (= 1 (count group))
+                                   (conj acc group)
+                                   (concat acc (join-group group)))) '() (partition-by :value tiles)))
 
 (defn- is-stacked-from-top-to-bottom?
   [tiles]
-  (let [y-positions (into #{} (map #(-> % :position :y)) tiles )
+  (let [y-positions (into #{} (map #(-> % :position :y)) tiles)
         expected-positions (set (range (count y-positions)))]
     (= y-positions expected-positions)))
 
@@ -145,10 +150,16 @@
         :args (s/cat :board ::d/game-board :direction ::d/direction)
         :ret ::d/game-board)
 
-(defn move-direction
+(defn move-and-join
   [board direction]
   (->> (rows-in-direction direction board)
        (map (partial sort-tiles-by-priority direction))
        (map join-first)
        (mapcat (partial stack-tiles direction))
-       (maybe-insert-new-random-tile board)))
+       ))
+
+(defn move-direction
+  [board direction]
+  (->>
+   (move-and-join board direction)
+   (maybe-insert-new-random-tile board)))

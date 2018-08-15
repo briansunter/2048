@@ -15,7 +15,7 @@
                  [re-frisk "0.3.2"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
-            [lein-doo "0.1.6"]
+            [lein-doo "0.1.8"]
             [lein-figwheel "0.5.4-5"]]
   :repl-options {:timeout 180000}
   :min-lein-version "2.5.0"
@@ -60,7 +60,12 @@
                                    :output-dir "target/cljstest/public/js/out"
                                    :optimizations :whitespace
                                    :pretty-print true}}}}
-  :doo {:build "test"}
+  :doo {:debug true
+        :build "test"
+        :paths {:karma "./node_modules/.bin/karma --port 9881 --no-colors"}
+        :alias {:default [:chrome]}
+        :coverage {:packages ['twentyfortyeight]
+                   :reporter {:check {:global {:statements 95}}}}}
 
   :aliases {"release" ["do" "clean" ["cljsbuild" "once" "release"]]}
 

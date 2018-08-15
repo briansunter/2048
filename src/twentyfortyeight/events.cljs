@@ -64,3 +64,9 @@
  interceptors
  (fn [db [direction]]
    (update-db-with-direction db direction)))
+
+(rf/reg-event-db
+ :set-game-board
+ interceptors
+ (fn [db [game-board]]
+   (assoc db :game-board game-board)))
