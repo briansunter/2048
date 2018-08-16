@@ -6,9 +6,9 @@
             [twentyfortyeight.view.view]
             [twentyfortyeight.subs]
             [twentyfortyeight.test-util :refer [check']]
-            [cljs.spec.test :as st]))
+            [cljs.spec.test.alpha :as st]))
 
-#_(deftest test-all
+(deftest test-all
   (check' (st/check)))
 
 (deftest test-move-direction

@@ -1,5 +1,5 @@
 (ns twentyfortyeight.view.colors
-  (:require [cljs.spec :as s]))
+  (:require [cljs.spec.alpha :as s]))
 
 (defn- int->hex
   [i]

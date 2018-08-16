@@ -1,5 +1,5 @@
 (ns twentyfortyeight.test-util
-  (:require [cljs.spec.test :as st]
+  (:require [cljs.spec.test.alpha :as st]
             [clojure.test :refer [is]]
             [clojure.pprint :as pprint]))
 

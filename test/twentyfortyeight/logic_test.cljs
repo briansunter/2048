@@ -1,6 +1,10 @@
 (ns twentyfortyeight.logic-test
   (:require [twentyfortyeight.logic :as sut]
+            [cljs.spec.alpha :as s]
+            [orchestra-cljs.spec.test :as st]
             [cljs.test :as t :include-macros true]))
+
+(st/instrument)
 
 (def board
   '({:id "1"
@@ -126,6 +130,6 @@
   (let [right-m-join
         '({:id "1"
            :position {:x 4, :y 0}, :value 2}
-          {:id "2",
+          {:id "3",
            :position {:x 3, :y 0}, :value 4})]
     (t/is (= right-m-join (sut/move-and-join duplicate-join-board :right)))))

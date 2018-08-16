@@ -1,8 +1,8 @@
 (ns twentyfortyeight.logic
-  (:require [cljs.spec :as s]
+  (:require [cljs.spec.alpha :as s]
             [twentyfortyeight.db :as d]
-            [cljs.spec.impl.gen :as gen]
-            [cljs.spec.test :as st]
+            [cljs.spec.gen.alpha :as gen]
+            [cljs.spec.test.alpha :as st]
             [twentyfortyeight.db :as db]))
 
 (s/fdef sort-tiles-by-priority
@@ -24,7 +24,7 @@
 
 (s/fdef group-by-position
         :args (s/cat :board ::d/game-board :axis #{:x :y})
-        :ret (s/coll-of (s/coll-of ::d/tile)))
+        :ret (s/map-of ::db/within-board-size (s/coll-of ::d/tile)))
 
 (defn- group-by-position
   [board axis]
@@ -55,12 +55,12 @@
   [first-tile second-tile]
   (let [new-id (or  #_(:id second-tile) (:id first-tile))
         new-value (+ (:value first-tile) (:value second-tile))
-        new-position (or #_(:position second-tile) (:position first-tile))]
+        new-position (or (:position second-tile) (:position first-tile))]
   {:id  new-id :value new-value :position new-position}))
 
 (defn- join-group
   [group]
-  (map (fn [[f s]] (join-tiles f s)) (partition-all 2 group)))
+  (map (fn [[f s]] (join-tiles f s)) (reverse (partition-all 2 group))))
 
 (s/fdef join-first
   :args (s/cat :tiles (s/coll-of ::d/tile :into []))
@@ -70,7 +70,7 @@
 (defn- join-first
   [tiles]
   (reduce (fn [acc group] (if (= 1 (count group))
-                                   (conj acc group)
+                                   (concat acc group)
                                    (concat acc (join-group group)))) '() (partition-by :value tiles)))
 
 (defn- is-stacked-from-top-to-bottom?

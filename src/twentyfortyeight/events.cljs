@@ -4,7 +4,7 @@
             [re-frame.core :as rf]
             [twentyfortyeight.util :refer [map-values group-by-single]]
             [twentyfortyeight.effects :as effects]
-            [cljs.spec :as s]))
+            [cljs.spec.alpha :as s]))
 
 (defn check-and-throw
   "throw an exception if db doesn't match the spec"

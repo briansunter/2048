@@ -1,9 +1,9 @@
 (ns twentyfortyeight.db
   (:require [reagent.core :as r]
             [twentyfortyeight.util :refer [pow-2 log2]]
-            [cljs.spec :as s]
+            [cljs.spec.alpha :as s]
             [clojure.test.check.generators]
-            [cljs.spec.impl.gen :as gen]))
+            [cljs.spec.gen.alpha :as gen]))
 
 (def board-size 5)
 

@@ -2,8 +2,8 @@
   (:require [re-frame.core :as rf]
             [twentyfortyeight.db :as db]
             [clojure.test.check.generators]
-            [cljs.spec.impl.gen :as gen]
-            [cljs.spec :as s]))
+            [cljs.spec.gen.alpha :as gen]
+            [cljs.spec.alpha :as s]))
 
 (defn set-item!
   "Set `key' in browser's localStorage to `val`."

@@ -5,8 +5,9 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies [[org.clojure/clojure "1.8.0" :scope "provided"]
-                 [org.clojure/clojurescript "1.9.229" :scope "provided"]
+                 [org.clojure/clojurescript "1.9.671" :scope "provided"]
                  [org.clojure/test.check "0.9.0"]
+                 [orchestra "2017.11.12-1"]
                  [cljsjs/hammer "2.0.4-5"]
                  [reanimated "0.5.0"]
                  [reagent "0.6.0" :exclusions [cljsjs/react]]

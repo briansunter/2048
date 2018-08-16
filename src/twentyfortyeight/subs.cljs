@@ -1,7 +1,7 @@
 (ns twentyfortyeight.subs
   (:require [twentyfortyeight.db :as db]
             [re-frame.core :as rf]
-            [cljs.spec :as s]))
+            [cljs.spec.alpha :as s]))
 
 (rf/reg-sub
  :tile-ids
