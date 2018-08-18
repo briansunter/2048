@@ -53,6 +53,7 @@
 (s/def ::within-board-size (s/int-in 0 board-size))
 (s/def ::x ::within-board-size)
 (s/def ::y ::within-board-size)
+(s/def ::axis #{:x :y})
 (s/def ::id (s/with-gen string? id-gen))
 (s/def ::direction directions)
 (s/def ::position (s/keys :req-un [::x ::y]))

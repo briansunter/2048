@@ -2,8 +2,16 @@
   (:require [cljs.spec.alpha :as s]
             [twentyfortyeight.db :as d]
             [cljs.spec.gen.alpha :as gen]
-            [cljs.spec.test.alpha :as st]
+            [orchestra-cljs.spec.test :as st]
             [twentyfortyeight.db :as db]))
+
+(s/fdef position
+  :args (s/cat :axis ::d/axis :tile ::d/tile)
+  :ret ::d/within-board-size)
+
+(defn- position
+  [axis tile]
+  (get-in tile [:position axis]))
 
 (s/fdef sort-tiles-by-priority
         :args (s/cat :direction ::d/direction :tiles (s/coll-of ::d/tile))
@@ -11,24 +19,12 @@
 
 (defn- sort-tiles-by-priority
   [direction tiles]
-  (let [reverse #(> %1 %2)]
+  (let [descending #(> %1 %2)]
     (case direction
-      :up (sort-by #(-> % :position :y) tiles)
-      :down (sort-by #(-> % :position :y) reverse tiles)
-      :left (sort-by #(-> % :position :x) tiles)
-      :right (sort-by #(-> % :position :x) reverse tiles))))
-
-(def ^:private vertical?  #{:up :down})
-
-(def ^:private horizontal? #{:left :right})
-
-(s/fdef group-by-position
-        :args (s/cat :board ::d/game-board :axis #{:x :y})
-        :ret (s/map-of ::d/within-board-size (s/coll-of ::d/tile)))
-
-(defn- group-by-position
-  [board axis]
-  (group-by #(-> % :position axis) board))
+      :up (sort-by #(position :y %) tiles)
+      :down (sort-by #(position :y %) descending tiles)
+      :left (sort-by #(position :x %) tiles)
+      :right (sort-by #(position :x %) descending tiles))))
 
 (s/def ::tiles-to-move (s/coll-of (s/coll-of ::d/tile)))
 
@@ -38,25 +34,15 @@
 
 (defn- rows-in-direction
   [direction board]
-  (cond
-    (vertical? direction) (vals (group-by-position board :x))
-    (horizontal? direction) (vals (group-by-position board :y))))
-
-(defn- maybe-count-decreased-by-one?
-  [in-tiles out-tiles]
-  (or
-   (= (count out-tiles) (count in-tiles))
-   (= (count out-tiles) (dec (count in-tiles)))))
-
-(defn- indices [pred coll]
-  (keep-indexed #(when (pred %2) %1) coll))
+    (cond
+     (#{:up :down} direction) (vals (group-by #(position :x %) board))
+     (#{:left :right} direction) (vals (group-by #(position :y %) board))))
 
 (defn- join-tiles
   [first-tile second-tile]
-  (let [new-id (or  #_(:id second-tile) (:id first-tile))
-        new-value (+ (:value first-tile) (:value second-tile))
-        new-position (or (:position second-tile) (:position first-tile))]
-  {:id  new-id :value new-value :position new-position}))
+  {:id (:id first-tile)
+   :value (+ (:value first-tile) (:value second-tile))
+   :position (or (:position second-tile) (:position first-tile))})
 
 (defn- join-group
   [group]
@@ -65,13 +51,14 @@
 (s/fdef join-first
   :args (s/cat :tiles (s/coll-of ::d/tile :into []))
   :ret (s/coll-of ::d/tile)
-  :fn #(maybe-count-decreased-by-one? (-> % :args :tiles) (-> % :ret)))
+  :fn #(>= (count (-> % :args :tiles)) (count (-> % :ret))))
 
 (defn- join-first
   [tiles]
   (reduce (fn [acc group] (if (= 1 (count group))
                                    (concat acc group)
-                                   (concat acc (join-group group)))) '() (partition-by :value tiles)))
+                                   (concat acc (join-group group))))
+          '() (partition-by :value tiles)))
 
 (defn- is-stacked-from-top-to-bottom?
   [tiles]
@@ -109,7 +96,7 @@
   (case direction
     :up (stack-top-to-bottom tiles)
     :down (stack-bottom-to-top tiles)
-    :right (stack-right-to-left (sort-tiles-by-priority :right tiles))
+    :right (stack-right-to-left tiles)
     :left (stack-left-to-right tiles)))
 
 (s/fdef random-open-position

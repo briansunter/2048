@@ -65,7 +65,7 @@
         :build "test"
         :paths {:karma "./node_modules/.bin/karma --port 9881 --no-colors"}
         :alias {:default [:chrome]}
-        :coverage {:packages ['twentyfortyeight]
+        :coverage {:packages ['twentyfortyeight.logic]
                    :reporter {:check {:global {:statements 95}}}}}
 
   :aliases {"release" ["do" "clean" ["cljsbuild" "once" "release"]]}

@@ -4,6 +4,8 @@
             [orchestra-cljs.spec.test :as st]
             [cljs.test :as t :include-macros true]))
 
+(st/instrument)
+
 (def board
   '({:id "1" :position {:x 4, :y 1}, :value 2}
     {:id "2",
