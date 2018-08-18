@@ -13,9 +13,9 @@
   [direction tiles]
   (let [reverse #(> %1 %2)]
     (case direction
-      :up (sort-by #(-> % :position :y)  tiles)
+      :up (sort-by #(-> % :position :y) tiles)
       :down (sort-by #(-> % :position :y) reverse tiles)
-      :left (sort-by #(-> % :position :x)  tiles)
+      :left (sort-by #(-> % :position :x) tiles)
       :right (sort-by #(-> % :position :x) reverse tiles))))
 
 (def ^:private vertical?  #{:up :down})
@@ -24,7 +24,7 @@
 
 (s/fdef group-by-position
         :args (s/cat :board ::d/game-board :axis #{:x :y})
-        :ret (s/map-of ::db/within-board-size (s/coll-of ::d/tile)))
+        :ret (s/map-of ::d/within-board-size (s/coll-of ::d/tile)))
 
 (defn- group-by-position
   [board axis]
@@ -60,7 +60,7 @@
 
 (defn- join-group
   [group]
-  (map (fn [[f s]] (join-tiles f s)) (reverse (partition-all 2 group))))
+  (map (fn [[f s]] (join-tiles f s)) (partition-all 2 group)))
 
 (s/fdef join-first
   :args (s/cat :tiles (s/coll-of ::d/tile :into []))
@@ -109,7 +109,7 @@
   (case direction
     :up (stack-top-to-bottom tiles)
     :down (stack-bottom-to-top tiles)
-    :right (stack-right-to-left tiles)
+    :right (stack-right-to-left (sort-tiles-by-priority :right tiles))
     :left (stack-left-to-right tiles)))
 
 (s/fdef random-open-position
@@ -155,8 +155,7 @@
   (->> (rows-in-direction direction board)
        (map (partial sort-tiles-by-priority direction))
        (map join-first)
-       (mapcat (partial stack-tiles direction))
-       ))
+       (mapcat (partial stack-tiles direction))))
 
 (defn move-direction
   [board direction]
