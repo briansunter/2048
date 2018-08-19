@@ -46,7 +46,7 @@
 
 (defn- join-group
   [group]
-  (map (fn [[f s]] (join-tiles f s)) (partition-all 2 group)))
+  (map (fn [[f s]] (join-tiles f s)) (map reverse (partition-all 2 group))))
 
 (s/fdef join-first
   :args (s/cat :tiles (s/coll-of ::d/tile :into []))
