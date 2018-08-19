@@ -40,7 +40,7 @@
 
 (defn- join-tiles
   [first-tile second-tile]
-  {:id (:id first-tile)
+  {:id (or (:id second-tile)(:id first-tile))
    :value (+ (:value first-tile) (:value second-tile))
    :position (or (:position second-tile) (:position first-tile))})
 
