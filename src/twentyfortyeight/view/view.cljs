@@ -14,8 +14,8 @@
             [twentyfortyeight.view.colors :as colors]
             [twentyfortyeight.db :as db]))
 
-(def screen-width (.-innerWidth js/window))
-(def screen-height (.-innerHeight js/window))
+(def screen-width (min 500 (.-innerWidth js/window)))
+(def screen-height (min 500 (.-innerHeight js/window)))
 
 (def tile-width (/ (min screen-height screen-width) db/board-size))
 
@@ -55,36 +55,49 @@
                 :display "flex"
                 :font-color "black"
                 :justify-content"center"
-                :align-items "center"
+                ;; :align-items "center"
                 :font-size 30
                 :left @spring-x
-                :top @spring-y
+                :margin-top @spring-y
                 :width tile-width
                 :height tile-width}}
        [:div
-        {:style {:background-color (colors/value->color (:value @tile))
-                 :border-width 1
+        {:style {:background-color (colors/value->color2 (:value @tile))
+                 :display :flex
+                 :width "100%"
+                 :margin "0"
                  :border-style "solid"
-                 :display "flex"
-                 :justify-content"center"
+                 :border-color "white"
+                 :justify-content "center"
                  :align-items "center"
-                 :width @grow-spring
-                 :height @grow-spring}}
+                 :text-align "center"
+                 }}
         [:a (:value @tile)]]])))
 
 (defn game-board
   []
   (let [tile-ids (rf/subscribe [:tile-ids])]
     (fn []
-      [:div
+      [:div {:style {:display "flex"
+             :flex-direction "column"
+             :align-items "center"} }
+       [:div
+        [:button {:style {:height "100px"
+                          :border-width 1}
+                  :on-click #(rf/dispatch [:new-game])} "New Game"]]
+       [:div
        {:style {:display "flex"
+                :border-style "solid"
+                :flex-direction "column"
+                :margin-left (when ( > (.-innerWidth js/window) 500)"25%")
                 :width screen-width
                 :height screen-height
                 :position "fixed"}}
-       [:button {:on-click #(rf/dispatch [:new-game])} "New Game"]
+
+        [:div
        (doall (for [tile-id @tile-ids]
                 ^{:key tile-id}
-                [tile-with-id tile-id]))])))
+                [tile-with-id tile-id]))]] ])))
 
 (defn game []
   (let [!hammer-manager (r/atom nil)]
